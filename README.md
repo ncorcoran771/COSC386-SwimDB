@@ -22,7 +22,7 @@ W3 pages that were helpful (please add to list)
 Session Variables:
 | name | usage | type/values |
 | ---- | ----- | ----------- |
-| user | users ID, either a swimmer/coach/admin ID | int |
+| user | users ID | int |
 | userType | users type | 'swimmer' 'coach' 'admin' |
 | loggedIN | whether they've successfully logged in | 1 if verified |
     
