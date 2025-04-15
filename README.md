@@ -20,9 +20,9 @@ W3 pages that were helpful (please add to list)
 1. Sessions: https://www.w3schools.com/php/php_sessions.asp
 
 Session Variables:
-| name | usage |
-| ---- | ----- |
-| user | users ID, either a swimmer/coach/admin ID |
-| userType | users type, either 'swimmer' 'coach' or 'admin' |
-| loggedIN | whether they've successfully logged in. value is 1 if true. |
+| name | usage | type/values |
+| ---- | ----- | ----------- |
+| user | users ID, either a swimmer/coach/admin ID | int |
+| userType | users type | 'swimmer' 'coach' 'admin' |
+| loggedIN | whether they've successfully logged in | 1 if verified |
     
