@@ -1,0 +1,1 @@
+indexp, login, register, reset_password are basically just php templates. Need confirmation on DB and fill in for the DB connection.
