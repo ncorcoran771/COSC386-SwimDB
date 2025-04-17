@@ -30,4 +30,8 @@ Session Variables:
 | user | users ID | int |
 | userType | users type | 'swimmer' 'coach' 'admin' |
 | loggedIN | login success | true if verified |
+
+
+
+https://excalidraw.com/#room=a8afb9d6e5254dacdc41,LKcesWyqdorgYI36r1hmFg
     
