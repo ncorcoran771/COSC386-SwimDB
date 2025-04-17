@@ -20,7 +20,8 @@
             text-align: center;
             width: 300px;
         }
-        .login-form input[type="text"] {
+        .login-form input[type="text"],
+        .login-form input[type="password"] {
             width: 90%;
             padding: 10px;
             margin: 10px 0;
@@ -55,8 +56,8 @@
     <div class="login-form">
         <h2>Swim Data Login</h2>
         <form method="post" action="login.php">
-            <input type="text" name="userID" placeholder="User ID" required><br>
-            <input type="text" name="plainPassword" placeholder="Password" required><br>
+            <input type="text" name="userID" placeholder="User ID" required>
+            <input type="password" name="plainPassword" placeholder="Password" required>
             <input type="submit" name="swimmerLog" value="Swimmer">
             <input type="submit" name="coachLog" value="Coach">
             <input type="submit" name="adminLog" value="Administrator">
