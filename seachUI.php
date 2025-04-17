@@ -6,9 +6,11 @@
 <form method=post action="search.php" id="dbSearch"></form>
 
 <body>
+  Event
 <select id="event" name="event" form_id="dbSearch">
   <option value="100Free">100 Freestyle</option>
 </select>
+State
 <select id="state" name="state" form_id="dbSearch">
   <option value="AL">Alabama</option>
   <option value="AK">Alaska</option>
