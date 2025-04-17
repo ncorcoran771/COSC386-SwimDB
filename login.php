@@ -1,55 +1,61 @@
-<!-- called when login button is pressed-->
 <?php
-    session_start();//start a user session
+session_start();
+require_once 'db_connection.php'; // include your DB connection script
 
-    //insert pass hashing here
-    $hashPass = $plainPass;
-    unset($plainPass);
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Sanitize input
+    $userID = trim($_POST['userID']);
+    $plainPass = trim($_POST['password']);
 
-//sets the user type as a session variable
-    if(isset($_POST['swimmerLog'])) // if swimmer button
+    // Hashing should match what's in your database (use password_hash when storing)
+    $hashPass = $plainPass; // We'll verify using password_verify below
+
+    // Determine user type
+    if (isset($_POST['swimmerLog'])) {
         $_SESSION['userType'] = 'swimmer';
-    else if(isset($_POST['coachLog'])) // if coach button
+        $table = 'Swimmer';
+        $idField = 'swimmerID';
+    } elseif (isset($_POST['coachLog'])) {
         $_SESSION['userType'] = 'coach';
-    else if(isset($_POST['adminLog'])) // if admin button
+        $table = 'Coaches';
+        $idField = 'coachID';
+    } elseif (isset($_POST['adminLog'])) {
         $_SESSION['userType'] = 'admin';
-    else
-        echo "SOMETHING WENT HORRBLY WRONG!!\n"; //fail case...
-
-//sets the users ID in the session variable
-    $_SESSION['user'] = $userID;
-
-    $output = mysqli_query($conn, passQuery($_SESSION['userType'], $_SESSION['user'], $hashPassword));
-    if(!$outpt)//returns false of failure
-        echo "SQL QUERY FAILED\n";
-
-    $user = mysqli_fetch_assoc($output);
-    if(mysqli_fetch_assoc($output))//if another row exists we don messed up
-        echo "SQL QUERY RETURNED MULTIPLE ROWS \n";
-
-    if($user){//user exists and so much be who they say they are?
-        $_SESSION['logedIN'] = true; // they've logged in.
-        //do we want to save anything else from their query?
-        //maybe redirect to a home page?
+        $table = 'Administrator';
+        $idField = 'adminID';
+    } else {
+        die("User type not specified.");
     }
 
-    // password query building function
-    // we want an entire tuple of one person, based on their password & id
-    // technically possible to have same id same password different gender but lets ignore that
-    function passQuery($type, $id, $hashPass){
+    // Prepare and execute query
+    $stmt = $conn->prepare("SELECT * FROM $table WHERE $idField = ?");
+    $stmt->bind_param("s", $userID);
+    $stmt->execute();
+    $result = $stmt->get_result();
 
-        $toReturn = "SELECT * FROM ";
-        if($type == 'swimmer')
-            $toReturn = $toReturn . "Swimmer WHERE swimmerID";
-        else if ($type == 'coach')
-            $toReturn = $toReturn . "Coaches WHERE coachID";
-        else if ($type == 'admin')
-            $toReturn = $toReturn . "Administrator WHERE adminID";
+    // Check for exactly one user
+    if ($result->num_rows === 1) {
+        $user = $result->fetch_assoc();
 
-        $toReturn = $toReturn . " == " . $id . " && password == " . $hashPass;
+        // Verify password
+        if (password_verify($plainPass, $user['password'])) {
+            $_SESSION['user'] = $userID;
+            $_SESSION['loggedIN'] = true;
 
-        return $toReturn;
+            // Optionally store other user data in session
+            $_SESSION['userData'] = $user;
+
+            header("Location: home.php"); // Redirect to a dashboard or home page
+            exit;
+        } else {
+            echo "Incorrect password.";
+        }
+    } else {
+        echo "User not found or multiple users found.";
     }
 
-
+    $stmt->close();
+    $conn->close();
+}
 ?>
+
