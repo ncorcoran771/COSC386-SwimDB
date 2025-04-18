@@ -1,3 +1,3 @@
 indexp, login, register, reset_password are basically just php templates. Need confirmation on DB and fill in for the DB connection.
 
-remove coach option, allow no requirement for sign in for prototype.
+https://lamp.salisbury.edu/~eknights1/indexp.php
