@@ -1,3 +1,4 @@
+<!-- indexp.php -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -56,10 +57,9 @@
     <div class="login-form">
         <h2>Swim Data Login</h2>
         <form method="post" action="login.php">
-            <input type="text" name="userID" placeholder="User ID" required>
-            <input type="password" name="plainPassword" placeholder="Password" required>
+            <input type="text" name="userID" placeholder="User ID">
+            <input type="password" name="plainPassword" placeholder="Password">
             <input type="submit" name="swimmerLog" value="Swimmer">
-            <input type="submit" name="coachLog" value="Coach">
             <input type="submit" name="adminLog" value="Administrator">
         </form>
         <a href="login.php?action=forgot">Forgot Password?</a>
@@ -67,3 +67,4 @@
     </div>
 </body>
 </html>
+
