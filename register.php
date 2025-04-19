@@ -1,15 +1,13 @@
 <?php
 session_start();
-$conn = mysqli_connect("localhost", "username", "password", "swim_data");
-if (!$conn) {
-    die("Connection failed: " . mysqli_connect_error());
-}
+$conn = mysqli_connect("localhost", "eknights1", "eknights1", "athleticsRecruitingDB");
+if (!$conn) die("Connection failed: " . mysqli_connect_error());
 
 $userID = $_POST['userID'] ?? '';
 $plainPassword = $_POST['plainPassword'] ?? '';
 $role = $_POST['role'] ?? '';
 
-if (empty($userID) || empty($plainPassword) || empty($role)) {
+if (!$userID || !$plainPassword || !$role) {
     die("All fields are required.");
 }
 
@@ -19,10 +17,6 @@ switch (strtolower($role)) {
     case 'swimmer':
         $table = "Swimmer";
         $idField = "swimmerID";
-        break;
-    case 'coach':
-        $table = "Coaches";
-        $idField = "coachID";
         break;
     case 'administrator':
         $table = "Administrator";
@@ -46,3 +40,4 @@ if (mysqli_query($conn, $insertQuery)) {
     echo "Error: " . mysqli_error($conn);
 }
 ?>
+
