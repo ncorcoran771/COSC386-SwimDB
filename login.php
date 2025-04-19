@@ -1,61 +1,91 @@
 <?php
 session_start();
-require_once 'db_connection.php'; // include your DB connection script
+
+// Connect to database if needed later
+// $conn = mysqli_connect("localhost", "eknights1", "eknights1", "athleticsRecruitingDB");
+// if (!$conn) {
+//     die("Connection failed: " . mysqli_connect_error());
+// }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Sanitize input
-    $userID = trim($_POST['userID']);
-    $plainPass = trim($_POST['password']);
+    $userID = $_POST['userID'] ?? '';
+    $plainPass = $_POST['plainPassword'] ?? '';
 
-    // Hashing should match what's in your database (use password_hash when storing)
-    $hashPass = $plainPass; // We'll verify using password_verify below
-
-    // Determine user type
-    if (isset($_POST['swimmerLog'])) {
+    if (isset($_POST['swimmerLog']))
         $_SESSION['userType'] = 'swimmer';
-        $table = 'Swimmer';
-        $idField = 'swimmerID';
-    } elseif (isset($_POST['coachLog'])) {
-        $_SESSION['userType'] = 'coach';
-        $table = 'Coaches';
-        $idField = 'coachID';
-    } elseif (isset($_POST['adminLog'])) {
+    elseif (isset($_POST['adminLog']))
         $_SESSION['userType'] = 'admin';
-        $table = 'Administrator';
-        $idField = 'adminID';
+    else
+        $_SESSION['userType'] = 'guest'; // fallback
+
+    // TEMPORARY BYPASS FOR DEVELOPMENT:
+    $_SESSION['loggedIN'] = true;
+    $_SESSION['userData'] = [
+        'id' => $userID ?: 'guest',
+        'type' => $_SESSION['userType'],
+        'name' => 'Guest User'
+    ];
+    header("Location: home.php");
+    exit;
+
+    // REAL LOGIN CODE FOR FUTURE IMPLEMENTATION:
+    /*
+    $hashPassword = hash('sha256', $plainPass);
+    unset($plainPass);
+
+    $query = passQuery($_SESSION['userType'], $userID, $hashPassword);
+    $output = mysqli_query($conn, $query);
+
+    if ($user = mysqli_fetch_assoc($output)) {
+        $_SESSION['loggedIN'] = true;
+        $_SESSION['userData'] = [
+            'id' => $userID,
+            'type' => $_SESSION['userType'],
+            'name' => $user['name'] ?? $userID
+        ];
+        header("Location: home.php");
+        exit;
     } else {
-        die("User type not specified.");
+        echo "<h2>Invalid ID or password.</h2>";
+        echo "<a href='indexp.php'>Back to Login</a>";
     }
-
-    // Prepare and execute query
-    $stmt = $conn->prepare("SELECT * FROM $table WHERE $idField = ?");
-    $stmt->bind_param("s", $userID);
-    $stmt->execute();
-    $result = $stmt->get_result();
-
-    // Check for exactly one user
-    if ($result->num_rows === 1) {
-        $user = $result->fetch_assoc();
-
-        // Verify password
-        if (password_verify($plainPass, $user['password'])) {
-            $_SESSION['user'] = $userID;
-            $_SESSION['loggedIN'] = true;
-
-            // Optionally store other user data in session
-            $_SESSION['userData'] = $user;
-
-            header("Location: home.php"); // Redirect to a dashboard or home page
-            exit;
-        } else {
-            echo "Incorrect password.";
-        }
-    } else {
-        echo "User not found or multiple users found.";
+    */
+} elseif (isset($_GET['action'])) {
+    if ($_GET['action'] === 'forgot') {
+        echo <<<HTML
+        <h2>Forgot Password</h2>
+        <form method="post" action="reset_password.php">
+            <input type="text" name="userID" placeholder="Enter your User ID" required>
+            <input type="submit" value="Reset Password">
+        </form>
+        <a href='indexp.php'>Back to Login</a>
+        HTML;
+    } elseif ($_GET['action'] === 'create') {
+        echo <<<HTML
+        <h2>Create Account</h2>
+        <form method="post" action="register.php">
+            <input type="text" name="userID" placeholder="Choose a User ID" required>
+            <input type="password" name="plainPassword" placeholder="Choose a Password" required>
+            <select name="role" required>
+                <option value="">Select Role</option>
+                <option value="Swimmer">Swimmer</option>
+                <option value="Administrator">Administrator</option>
+            </select><br><br>
+            <input type="submit" value="Create Account">
+        </form>
+        <a href='indexp.php'>Back to Login</a>
+        HTML;
     }
-
-    $stmt->close();
-    $conn->close();
+} else {
+    header("Location: indexp.php");
+    exit;
 }
+
+// function passQuery($type, $id, $hashPass) {
+//     $table = $type === 'swimmer' ? 'Swimmer' : 'Administrator';
+//     $idField = $type === 'swimmer' ? 'swimmerID' : 'adminID';
+//     return "SELECT * FROM $table WHERE $idField = '$id' AND password = '$hashPass'";
+// }
 ?>
+
 
