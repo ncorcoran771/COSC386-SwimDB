@@ -1,30 +1,27 @@
 <?php
 session_start();
 
-// Connect to database if needed later
-// $conn = mysqli_connect("localhost", "eknights1", "eknights1", "athleticsRecruitingDB");
-// if (!$conn) {
-//     die("Connection failed: " . mysqli_connect_error());
-// }
-
+// TEMPORARY BYPASS FOR DEVELOPMENT:
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $userID = $_POST['userID'] ?? '';
     $plainPass = $_POST['plainPassword'] ?? '';
 
-    if (isset($_POST['swimmerLog']))
+    if (isset($_POST['swimmerLog'])) {
         $_SESSION['userType'] = 'swimmer';
-    elseif (isset($_POST['adminLog']))
+    } elseif (isset($_POST['adminLog'])) {
         $_SESSION['userType'] = 'admin';
-    else
+    } else {
         $_SESSION['userType'] = 'guest'; // fallback
+    }
 
-    // TEMPORARY BYPASS FOR DEVELOPMENT:
+    // TEMPORARY LOGIN: Set as logged in and assign guest data
     $_SESSION['loggedIN'] = true;
     $_SESSION['userData'] = [
         'id' => $userID ?: 'guest',
         'type' => $_SESSION['userType'],
-        'name' => 'Guest User'
+        'name' => 'Guest User'  // Temporary Guest User name
     ];
+
     header("Location: home.php");
     exit;
 
@@ -87,5 +84,3 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 //     return "SELECT * FROM $table WHERE $idField = '$id' AND password = '$hashPass'";
 // }
 ?>
-
-
