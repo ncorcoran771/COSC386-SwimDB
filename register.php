@@ -4,40 +4,36 @@ $conn = mysqli_connect("localhost", "eknights1", "eknights1", "athleticsRecruiti
 if (!$conn) die("Connection failed: " . mysqli_connect_error());
 
 $userID = $_POST['userID'] ?? '';
-$plainPassword = $_POST['plainPassword'] ?? '';
-$role = $_POST['role'] ?? '';
-
-if (!$userID || !$plainPassword || !$role) {
-    die("All fields are required.");
+if (empty($userID)) {
+    die("User ID is required.");
 }
 
-$hashedPassword = hash('sha256', $plainPassword);
+// Change 'Swimmer' to 'User' here and update the corresponding ID field.
+$tables = ['User' => 'userID', 'Administrator' => 'adminID'];
+$found = false;
 
-switch (strtolower($role)) {
-    case 'user':
-        $table = "User";
-        $idField = "userID";
+foreach ($tables as $table => $idField) {
+    $query = "SELECT * FROM $table WHERE $idField = '$userID'";
+    $result = mysqli_query($conn, $query);
+    if (mysqli_num_rows($result) === 1) {
+        $found = true;
+        $newPass = bin2hex(random_bytes(4)); // Generate a new random password
+        $hashed = hash('sha256', $newPass); // Hash the password using SHA256
+        $update = "UPDATE $table SET password = '$hashed' WHERE $idField = '$userID'";
+        mysqli_query($conn, $update); // Execute the update query
+        echo "<h2>Password reset!</h2>";
+        echo "Your new password is: <strong>$newPass</strong><br>";
+        echo "<a href='indexp.php'>Return to Login</a>";
         break;
-    case 'administrator':
-        $table = "Administrator";
-        $idField = "adminID";
-        break;
-    default:
-        die("Invalid role selected.");
+    }
 }
 
-$checkQuery = "SELECT * FROM $table WHERE $idField = '$userID'";
-$result = mysqli_query($conn, $checkQuery);
-if (mysqli_num_rows($result) > 0) {
-    die("User ID already exists.");
-}
-
-$insertQuery = "INSERT INTO $table ($idField, password) VALUES ('$userID', '$hashedPassword')";
-if (mysqli_query($conn, $insertQuery)) {
-    echo "<h2>Account created successfully!</h2>";
+if (!$found) {
+    echo "<h2>User ID not found.</h2>";
     echo "<a href='indexp.php'>Return to Login</a>";
-} else {
-    echo "Error: " . mysqli_error($conn);
 }
+
+// Close the database connection
+mysqli_close($conn);
 ?>
 
