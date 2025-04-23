@@ -2,14 +2,16 @@
 session_start();
 include('DB.php'); // Ensure DB connection
 
-$role = $_SESSION['role'] ?? 'guest';
-$user = $_SESSION['userData']['name'] ?? 'Guest';
+// Default to 'guest' if not logged in
+$role = $_SESSION['role'] ?? 'guest'; // Default to 'guest' if not logged in
+$user = $_SESSION['userData']['name'] ?? 'Guest'; // Get user name from session
 
-// Temporary admin elevation for guest testing
+// For testing purposes, we allow guest to perform admin actions
 if ($role === 'guest') {
-    $role = 'admin';
+    $role = 'admin'; // Temporarily elevate guest to admin for testing
 }
 
+// If the user is admin (or guest elevated to admin), allow them to delete admins
 if ($role === 'admin') {
     if (isset($_GET['adminID'])) {
         $adminID = $_GET['adminID'];
@@ -22,6 +24,7 @@ if ($role === 'admin') {
         }
     }
 } else {
+    // Only show this message if you're planning to remove the guest admin access later
     echo "You do not have permission to delete admin records. Please log in as an admin.";
 }
 ?>
@@ -41,8 +44,9 @@ if ($role === 'admin') {
         <input type="number" name="adminID" required><br><br>
         <input type="submit" value="Delete Admin">
     </form>
+    <?php else: ?>
+        <!-- Re-enable restriction later by uncommenting this line -->
+        <!-- <p>Only admins can delete admin records.</p> -->
     <?php endif; ?>
-
-    <p><a href="home.php"> Back to Home</a></p>
 </body>
 </html>

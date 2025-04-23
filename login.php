@@ -6,10 +6,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $userID = $_POST['userID'] ?? '';
     $plainPass = $_POST['plainPassword'] ?? '';
 
-    if (isset($_POST['adminLog'])) {
+    if (isset($_POST['swimmerLog'])) {
+        $_SESSION['userType'] = 'swimmer';
+    } elseif (isset($_POST['adminLog'])) {
         $_SESSION['userType'] = 'admin';
     } else {
-        $_SESSION['userType'] = 'user'; // default for anyone not admin
+        $_SESSION['userType'] = 'guest'; // fallback
     }
 
     // TEMPORARY LOGIN: Set as logged in and assign guest data
@@ -63,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <input type="password" name="plainPassword" placeholder="Choose a Password" required>
             <select name="role" required>
                 <option value="">Select Role</option>
-                <option value="User">User</option>
+                <option value="Swimmer">Swimmer</option>
                 <option value="Administrator">Administrator</option>
             </select><br><br>
             <input type="submit" value="Create Account">
@@ -76,13 +78,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exit;
 }
 
-// Future function for authentication query
-/*
-function passQuery($type, $id, $hashPass) {
-    $table = $type === 'admin' ? 'Administrator' : 'User';
-    $idField = $type === 'admin' ? 'adminID' : 'userID';
-    return "SELECT * FROM $table WHERE $idField = '$id' AND password = '$hashPass'";
-}
-*/
+// function passQuery($type, $id, $hashPass) {
+//     $table = $type === 'swimmer' ? 'Swimmer' : 'Administrator';
+//     $idField = $type === 'swimmer' ? 'swimmerID' : 'adminID';
+//     return "SELECT * FROM $table WHERE $idField = '$id' AND password = '$hashPass'";
+// }
 ?>
-
