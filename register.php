@@ -14,9 +14,9 @@ if (!$userID || !$plainPassword || !$role) {
 $hashedPassword = hash('sha256', $plainPassword);
 
 switch (strtolower($role)) {
-    case 'swimmer':
-        $table = "Swimmer";
-        $idField = "swimmerID";
+    case 'user':
+        $table = "User";
+        $idField = "userID";
         break;
     case 'administrator':
         $table = "Administrator";
