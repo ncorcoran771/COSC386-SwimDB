@@ -285,19 +285,16 @@ switch ("$entity:$action") {
                 
                 // Insert new meet
                 
-                // Add this debugging section before the Meet insertion
+                // Add this debugging section before the Meet insertion if needed
                 /*
-                //echo "<div class='message'>";
-                //echo "Debug information:<br>";
-                //echo "Meet Name: " . htmlspecialchars($meetName) . "<br>";
-                //echo "Location: " . htmlspecialchars($location) . "<br>";
-                //echo "Date (as received): " . htmlspecialchars($meetDate) . "<br>";
-                //echo "</div>";
+                echo "<div class='message'>";
+                echo "Debug information:<br>";
+                echo "Meet Name: " . htmlspecialchars($meetName) . "<br>";
+                echo "Location: " . htmlspecialchars($location) . "<br>";
+                echo "Date (as received): " . htmlspecialchars($meetDate) . "<br>";
+                echo "</div>";
                 */
 
-                // Stop execution to check values
-                echo "<a href='javascript:history.back()' class='button'>Go Back</a>";
-                exit;
                 $stmt = $conn->prepare("INSERT INTO Meet (meetName, location, date) VALUES (?, ?, ?)");
                 $stmt->bind_param('sss', $meetName, $location, $meetDate);
                 $stmt->execute();
@@ -413,11 +410,16 @@ switch ("$entity:$action") {
             <div>
                 <label for="searchType">Search By:</label>
                 <select name="searchType" id="searchType" onchange="showAppropriateFields()">
+                    <option value="all">List All Swimmers</option>
                     <option value="name">Name</option>
                     <option value="team">Team</option>
                     <option value="hometown">Hometown</option>
                     <option value="id">Swimmer ID</option>
                 </select>
+            </div>
+            
+            <div id="allFields" style="display:none">
+                <p>Click Search to see all swimmers</p>
             </div>
             
             <div id="nameField">
@@ -452,9 +454,14 @@ switch ("$entity:$action") {
             document.getElementById('teamField').style.display = 'none';
             document.getElementById('hometownField').style.display = 'none';
             document.getElementById('idField').style.display = 'none';
+            document.getElementById('allFields').style.display = 'none';
             
             // Show selected field
-            document.getElementById(searchType + 'Field').style.display = 'block';
+            if (searchType === 'all') {
+                document.getElementById('allFields').style.display = 'block';
+            } else {
+                document.getElementById(searchType + 'Field').style.display = 'block';
+            }
         }
         
         // Initialize on page load
@@ -469,6 +476,10 @@ switch ("$entity:$action") {
             
             // Build query based on search type
             switch ($searchType) {
+                case 'all':
+                    $query = "SELECT * FROM Swimmer ORDER BY name";
+                    break;
+                    
                 case 'name':
                     $nameQuery = sanitize($_POST['nameQuery'] ?? '');
                     if (!empty($nameQuery)) {
@@ -502,13 +513,21 @@ switch ("$entity:$action") {
                     break;
             }
             
-            if (!empty($query) && !empty($param)) {
-                $stmt = $conn->prepare($query);
-                $stmt->bind_param('s', $param);
-                $stmt->execute();
-                $result = $stmt->get_result();
+            if (!empty($query)) {
+                if ($searchType === 'all') {
+                    $result = $conn->query($query);
+                } else {
+                    if (empty($param)) {
+                        echo showMessage("Please enter search criteria", true);
+                        break;
+                    }
+                    $stmt = $conn->prepare($query);
+                    $stmt->bind_param('s', $param);
+                    $stmt->execute();
+                    $result = $stmt->get_result();
+                }
                 
-                if ($result->num_rows > 0) {
+                if (isset($result) && $result->num_rows > 0) {
                     echo "<h2>Results</h2>";
                     echo "<table>";
                     echo "<tr><th>ID</th><th>Name</th><th>Gender</th><th>Hometown</th><th>Team</th><th>Power Index</th><th>Actions</th></tr>";
@@ -531,18 +550,18 @@ switch ("$entity:$action") {
                 } else {
                     echo showMessage("No swimmers found matching your criteria");
                 }
-            } else {
+            } else if ($searchType !== 'all') {
                 echo showMessage("Please enter search criteria", true);
             }
         }
         break;
         
-    case 'view:conferences':
-    case 'view:meets':
-    case 'view:swims':
-    case 'view:teams':
+    case 'conferences:view':
+    case 'meets:view':
+    case 'swims:view':
+    case 'teams:view':
         // Generic table viewer
-        $tableName = str_replace('view:', '', "$entity:$action");
+        $tableName = str_replace(':view', '', "$entity:$action");
         $tableMap = [
             'conferences' => 'Conference',
             'meets' => 'Meet',
