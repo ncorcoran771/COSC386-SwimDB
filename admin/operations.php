@@ -207,32 +207,86 @@ switch ("$entity:$action") {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $swimmerID = sanitize($_POST['swimmerID']);
             
-            $stmt = $conn->prepare("DELETE FROM Swimmer WHERE swimmerID = ?");
+            // Check if swimmer has swim records
+            $stmt = $conn->prepare("SELECT COUNT(*) as count FROM Swim WHERE swimmerID = ?");
             $stmt->bind_param('i', $swimmerID);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $row = $result->fetch_assoc();
             
-            if ($stmt->execute()) {
-                echo showMessage("Swimmer deleted successfully");
-                // Redirect after success
-                echo "<script>
-                    setTimeout(function(){
-                        window.location.href = 'operations.php?action=delete&entity=swimmer&success=true';
-                    }, 2000);
-                </script>";
+            if ($row['count'] > 0) {
+                // Swimmer has swim records
+                $deleteRecords = isset($_POST['deleteRecords']) && $_POST['deleteRecords'] === 'yes';
+                
+                if ($deleteRecords) {
+                    // Delete swim records first
+                    $stmt = $conn->prepare("DELETE FROM Swim WHERE swimmerID = ?");
+                    $stmt->bind_param('i', $swimmerID);
+                    
+                    if ($stmt->execute()) {
+                        // Now delete the swimmer
+                        $stmt = $conn->prepare("DELETE FROM Swimmer WHERE swimmerID = ?");
+                        $stmt->bind_param('i', $swimmerID);
+                        
+                        if ($stmt->execute()) {
+                            echo showMessage("Swimmer and associated swim records deleted successfully");
+                        } else {
+                            echo showMessage("Error deleting swimmer: " . $stmt->error, true);
+                        }
+                    } else {
+                        echo showMessage("Error deleting swim records: " . $stmt->error, true);
+                    }
+                } else {
+                    // Show warning and confirmation form
+                    echo "<div class='message error'>";
+                    echo "<p>This swimmer has {$row['count']} swim records. These must be deleted first.</p>";
+                    echo "<form method='post'>";
+                    echo "<input type='hidden' name='swimmerID' value='$swimmerID'>";
+                    echo "<input type='hidden' name='deleteRecords' value='yes'>";
+                    echo "<button type='submit' class='button'>Yes, delete swimmer and all their records</button> ";
+                    echo "</form>";
+                    echo "</div>";
+                    
+                    // Still show the deletion form
+                    ?>
+                    <form method="post">
+                        <div>
+                            <label for="swimmerID">Swimmer ID:</label>
+                            <input type="number" name="swimmerID" required>
+                        </div>
+                        <button type="submit" onsubmit="return confirmDelete('Are you sure you want to delete this swimmer?')">Delete Swimmer</button>
+                    </form>
+                    <?php
+                }
             } else {
-                echo showMessage("Error deleting swimmer: " . $stmt->error, true);
+                // No swim records, proceed with deleting the swimmer
+                $stmt = $conn->prepare("DELETE FROM Swimmer WHERE swimmerID = ?");
+                $stmt->bind_param('i', $swimmerID);
+                
+                if ($stmt->execute()) {
+                    echo showMessage("Swimmer deleted successfully");
+                    // Redirect after success
+                    echo "<script>
+                        setTimeout(function(){
+                            window.location.href = 'operations.php?action=delete&entity=swimmer&success=true';
+                        }, 2000);
+                    </script>";
+                } else {
+                    echo showMessage("Error deleting swimmer: " . $stmt->error, true);
+                }
             }
+        } else {
+            // Swimmer delete form
+            ?>
+            <form method="post" onsubmit="return confirmDelete('Are you sure you want to delete this swimmer?')">
+                <div>
+                    <label for="swimmerID">Swimmer ID:</label>
+                    <input type="number" name="swimmerID" required>
+                </div>
+                <button type="submit">Delete Swimmer</button>
+            </form>
+            <?php
         }
-        
-        // Swimmer delete form
-        ?>
-        <form method="post" onsubmit="return confirmDelete('Are you sure you want to delete this swimmer?')">
-            <div>
-                <label for="swimmerID">Swimmer ID:</label>
-                <input type="number" name="swimmerID" required>
-            </div>
-            <button type="submit">Delete Swimmer</button>
-        </form>
-        <?php
         break;
         
     // NEW CASE: Add swim time for swimmers

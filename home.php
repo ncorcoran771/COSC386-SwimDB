@@ -29,7 +29,12 @@ include 'includes/header.php';
 <?php if ($role === 'admin'): ?>
     <h2>Administrator Tools</h2>
     <div class="nav">
-        <a href="admin/operations.php?action=insert&entity=swimmer">Add New Swimmer</a>
+        <!-- New unified management interfaces -->
+        <a href="admin/swimmer_management.php">Swimmer Management</a>
+        <a href="admin/team_management.php">Team Management</a>
+        
+        <!-- Keep existing links for backward compatibility -->
+        <a href="admin/operations.php?action=insert&entity=swimmer">Add Swimmer</a>
         <a href="admin/operations.php?action=search&entity=swimmer">Search Swimmers</a>
         <a href="admin/operations.php?action=delete&entity=swimmer">Delete Swimmer</a>
         <a href="admin/operations.php?action=insert&entity=swim">Add Swim Times</a>

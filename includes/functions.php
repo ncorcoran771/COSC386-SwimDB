@@ -30,13 +30,23 @@ function redirect($url, $message = '') {
 function timeToSeconds($timeStr) {
     if (empty($timeStr)) return 0;
     $parts = explode(':', $timeStr);
-    return ($parts[0] * 60) + $parts[1] + ($parts[2] / 100);
+    
+    // Explicitly cast parts to appropriate types
+    $minutes = (int)$parts[0];
+    $seconds = (float)$parts[1];
+    $milliseconds = (float)$parts[2] / 100;
+    
+    return ($minutes * 60) + $seconds + $milliseconds;
 }
 
 // Convert seconds to time string
 function secondsToTime($seconds) {
+    // Ensure $seconds is treated as float
+    $seconds = (float)$seconds;
+    
     $minutes = floor($seconds / 60);
-    $secs = $seconds % 60;
+    // Use fmod instead of % for floating point modulo
+    $secs = fmod($seconds, 60);
     $ms = round(($secs - floor($secs)) * 100);
     return sprintf("%d:%02d:%02d", $minutes, floor($secs), $ms);
 }
