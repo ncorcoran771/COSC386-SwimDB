@@ -12,7 +12,7 @@ CREATE TABLE Admin (
 CREATE TABLE User (
     name varchar(20),
     userID int, --could be a swimmer ID
-    password varchar(64) - Should be hashed
+    password varchar(64) -- Should be hashed
 
 );
 
