@@ -14,20 +14,41 @@ if ($role === 'guest') {
 // If the user is admin (or guest elevated to admin), allow them to insert admins
 if ($role === 'admin') {
     if ($_SERVER["REQUEST_METHOD"] === "POST") {
+        // Get form data
         $name = $_POST['name'];
         $role = $_POST['role'];
 
-        $sql = "INSERT INTO Admin (name, role) VALUES ('$name', '$role')";
+        // Validate and sanitize inputs
+        $name = mysqli_real_escape_string($conn, $name);
+        $role = mysqli_real_escape_string($conn, $role);
 
-        if ($conn->query($sql) === TRUE) {
-            echo "New admin added successfully.";
+        // Set a default password if none is provided (optional)
+        $password = $_POST['password'] ?? 'defaultpassword'; // Default password
+        $hashedPassword = password_hash($password, PASSWORD_DEFAULT); // Hash the password
+
+        // Insert query using prepared statements
+        $sql = "INSERT INTO Admin (name, password, role) VALUES (?, ?, ?)";
+
+        // Prepare the statement
+        if ($stmt = $conn->prepare($sql)) {
+            // Bind parameters to the prepared statement
+            $stmt->bind_param("sss", $name, $hashedPassword, $role);
+
+            // Execute the query
+            if ($stmt->execute()) {
+                echo "✅ New admin added successfully.";
+            } else {
+                echo "❌ Error: " . $stmt->error;
+            }
+
+            // Close the statement
+            $stmt->close();
         } else {
-            echo "Error: " . $sql . "<br>" . $conn->error;
+            echo "❌ Error preparing query: " . $conn->error;
         }
     }
 } else {
-    // Only show this message if you're planning to remove the guest admin access later
-    echo "You do not have permission to add admin records. Please log in as an admin.";
+    echo "❌ You do not have permission to add admin records. Please log in as an admin.";
 }
 ?>
 
@@ -42,13 +63,20 @@ if ($role === 'admin') {
 
     <?php if ($role === 'admin'): ?>
     <form method="post">
-        Name: <input type="text" name="name" required><br>
-        Role: <input type="text" name="role" required><br>
+        <label for="name">Name:</label>
+        <input type="text" name="name" required><br><br>
+
+        <label for="password">Password:</label>
+        <input type="password" name="password" required><br><br>
+
+        <label for="role">Role (admin/user):</label>
+        <input type="text" name="role" required><br><br>
+
         <button type="submit">Insert Admin</button>
     </form>
     <?php else: ?>
-        <!-- Re-enable restriction later by uncommenting this line -->
-        <!-- <p>Only admins can add new admin records.</p> -->
+        <!-- Only show this message for non-admins -->
+        <p>You must be logged in as an admin to add new admin records.</p>
     <?php endif; ?>
     
     <a href="home.php">Back to Home</a>
