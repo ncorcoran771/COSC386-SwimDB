@@ -1,57 +1,63 @@
 <?php
 session_start();
-include('DB.php'); // Ensure DB connection
+include('DB.php');  // Include DB.php for database connection
 
-// Check if the user is logged in and retrieve their role and name
-$role = $_SESSION['role'] ?? 'guest'; // Default to 'guest' if not logged in
-$user = $_SESSION['userData']['name'] ?? 'Guest'; // Get user name from session
+$adminName = $_GET['adminName'] ?? '';  // Admin search query
 
-// Allow both 'admin' and 'guest' roles to search for admins, but restrict admin-only actions
-if ($role === 'admin' || $role === 'guest') {
-    // Handle search for admins
-    if ($_SERVER["REQUEST_METHOD"] === "POST") {
-        $searchQuery = $_POST['searchQuery'] ?? '';
-
-        // Use prepared statements to prevent SQL injection
-        if ($stmt = $conn->prepare("SELECT * FROM Admin WHERE name LIKE ?")) {
-            $searchQuery = "%$searchQuery%"; // Add wildcards for LIKE query
-            $stmt->bind_param('s', $searchQuery); // Bind the search query as a string
-            
-            $stmt->execute(); // Execute the statement
-            $result = $stmt->get_result(); // Get the result
-            
-            if ($result->num_rows > 0) {
-                while ($row = $result->fetch_assoc()) {
-                    echo "Name: " . htmlspecialchars($row['name']) . "<br>";
-                    echo "Role: " . htmlspecialchars($row['role']) . "<br><br>";
-                }
-            } else {
-                echo "No admin found.";
-            }
-            
-            $stmt->close(); // Close the prepared statement
-        } else {
-            echo "Error with the database query.";
-        }
-    }
-} else {
-    echo "You are not authorized to view this page.";
-    exit;
+// Query to fetch admin data based on search parameters
+$query = "SELECT * FROM Admin WHERE 1=1";
+if (!empty($adminName)) {
+    $adminName = mysqli_real_escape_string($conn, $adminName);  // Escape user input
+    $query .= " AND name LIKE '%$adminName%'";  // Add search condition for name
 }
+
+$result = mysqli_query($conn, $query);
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
     <title>Search Admin</title>
 </head>
 <body>
-    <h1>Welcome <?= htmlspecialchars($user) ?>! Search Admin</h1>
-    <form method="post">
-        <input type="text" name="searchQuery" placeholder="Enter admin's name">
-        <button type="submit">Search</button>
-    </form>
-    <a href="home.php">Back to Home</a>
+    <h1>Admin Table</h1>
+    <div style="display: flex;">
+        <!-- Search form on the left -->
+        <div style="width: 40%; padding-right: 20px;">
+            <form method="get" action="search_admin.php">
+                <label>Admin Name:</label><br>
+                <input type="text" name="adminName" value="<?= htmlspecialchars($adminName) ?>"><br><br>
+                <input type="submit" value="Search">
+            </form>
+        </div>
+
+        <!-- Admin table on the right -->
+        <div style="width: 60%;">
+            <table border="1" cellpadding="5" cellspacing="0">
+                <tr>
+                    <th>Name</th>
+                    <th>Admin ID</th>
+                    <th>Password</th>
+                </tr>
+                <?php if (mysqli_num_rows($result) > 0): ?>
+                    <?php while ($row = mysqli_fetch_assoc($result)): ?>
+                        <tr>
+                            <td><?= htmlspecialchars($row['name']) ?></td>
+                            <td><?= htmlspecialchars($row['adminID']) ?></td>
+                            <td>*****</td> <!-- Hide password for security -->
+                        </tr>
+                    <?php endwhile; ?>
+                <?php else: ?>
+                    <tr><td colspan="3">No results found.</td></tr>
+                <?php endif; ?>
+            </table>
+        </div>
+    </div>
+    <div>
+        <a href="home.php">Back to Home</a> | 
+        <a href="logout.php">Logout</a>
+    </div>
 </body>
 </html>
+
+<?php mysqli_close($conn); ?>
