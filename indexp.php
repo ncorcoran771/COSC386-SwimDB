@@ -1,4 +1,3 @@
-<!-- indexp.php -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -59,7 +58,7 @@
         <form method="post" action="login.php">
             <input type="text" name="userID" placeholder="User ID">
             <input type="password" name="plainPassword" placeholder="Password">
-            <input type="submit" name="swimmerLog" value="Swimmer">
+            <input type="submit" name="userLog" value="User">
             <input type="submit" name="adminLog" value="Administrator">
         </form>
         <a href="login.php?action=forgot">Forgot Password?</a>
