@@ -1,4 +1,9 @@
 <?php
+
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 require_once '../includes/config.php';
 require_once '../includes/db.php';
 require_once '../includes/functions.php';
@@ -161,7 +166,8 @@ switch ("$entity:$action") {
                 echo "<div class='message'>";
                 echo "<p>Would you like to add swim times for this swimmer?</p>";
                 echo "<a href='operations.php?action=insert&entity=swim&swimmer=$swimmerID' class='button'>Yes, add swim times</a> ";
-                echo "<a href='operations.php?action=insert&entity=swimmer&success=true' class='button'>No, add another swimmer</a>";
+                echo "<a href='operations.php?action=insert&entity=swimmer&success=true' class='button'>No, add another swimmer</a> ";
+                echo "<a href='../home.php' class='button'>Return to Home</a>"; // Add this line
                 echo "</div>";
             } else {
                 echo showMessage("Error adding swimmer: " . $stmt->error, true);
@@ -253,6 +259,16 @@ switch ("$entity:$action") {
             $eventName = sanitize($_POST['eventName']);
             $meetName = sanitize($_POST['meetName']);
             $meetDate = sanitize($_POST['meetDate']);
+            // Ensure the date is in MySQL format (YYYY-MM-DD)
+            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $meetDate)) {
+                // Try to convert to correct format if it's in another valid date format
+                $timestamp = strtotime($meetDate);
+                if ($timestamp === false) {
+                    echo showMessage("Invalid date format. Please use YYYY-MM-DD format.", true);
+                    exit;
+                }
+                $meetDate = date('Y-m-d', $timestamp);
+            }
             $timeStr = sanitize($_POST['time']);
             
             // Convert time to seconds for DB storage
@@ -268,6 +284,20 @@ switch ("$entity:$action") {
                 $location = sanitize($_POST['meetLocation'] ?? 'Unknown');
                 
                 // Insert new meet
+                
+                // Add this debugging section before the Meet insertion
+                /*
+                //echo "<div class='message'>";
+                //echo "Debug information:<br>";
+                //echo "Meet Name: " . htmlspecialchars($meetName) . "<br>";
+                //echo "Location: " . htmlspecialchars($location) . "<br>";
+                //echo "Date (as received): " . htmlspecialchars($meetDate) . "<br>";
+                //echo "</div>";
+                */
+
+                // Stop execution to check values
+                echo "<a href='javascript:history.back()' class='button'>Go Back</a>";
+                exit;
                 $stmt = $conn->prepare("INSERT INTO Meet (meetName, location, date) VALUES (?, ?, ?)");
                 $stmt->bind_param('sss', $meetName, $location, $meetDate);
                 $stmt->execute();
