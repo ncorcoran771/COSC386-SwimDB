@@ -11,19 +11,24 @@ if (!isLoggedIn()) {
 
 $user = getCurrentUser();
 include '../includes/header.php';
+
+// Extract search parameters
+$event = $_GET['event'] ?? '';
+$minTimeStr = $_GET['minTime'] ?? '';
+$maxTimeStr = $_GET['maxTime'] ?? '';
 ?>
 
 <h1>Search Swimmers</h1>
 
 <?php
-// Extract search logic from search_swimmer.php
-$event = $_GET['event'] ?? '';
-$minTimeStr = $_GET['minTime'] ?? '';
-$maxTimeStr = $_GET['maxTime'] ?? '';
-
-// Include the form and JavaScript validation
+// Display messages if any
+if (isset($_SESSION['message'])) {
+    echo showMessage($_SESSION['message']);
+    unset($_SESSION['message']);
+}
 ?>
-<form id="searchForm" method="post">
+
+<form id="searchForm" method="get">
     <div>
         <label for="event">Choose an event:</label>
         <select id="event" name="event" onchange="showTimeForm()">
@@ -62,15 +67,15 @@ $maxTimeStr = $_GET['maxTime'] ?? '';
     <div id="timeForm" style="display:none">
         <div>
             <label for="minTime">Minimum Time (mm:ss:ms):</label>
-            <input type="text" id="minTime" name="minTime" placeholder="e.g., 01:23:45" value="<?= htmlspecialchars($minTimeStr) ?>">
+            <input type="text" id="minTime" name="minTime" placeholder="e.g., 01:23:45" value="<?= htmlspecialchars($minTimeStr) ?>" required>
             <span id="minTimeError" class="error"></span>
         </div>
         <div>
             <label for="maxTime">Maximum Time (mm:ss:ms):</label>
-            <input type="text" id="maxTime" name="maxTime" placeholder="e.g., 01:23:45" value="<?= htmlspecialchars($maxTimeStr) ?>">
+            <input type="text" id="maxTime" name="maxTime" placeholder="e.g., 01:23:45" value="<?= htmlspecialchars($maxTimeStr) ?>" required>
             <span id="maxTimeError" class="error"></span>
         </div>
-        <button type="submit">Search</button>
+        <button type="submit" class="button">Search</button>
     </div>
 </form>
 
@@ -117,55 +122,47 @@ window.onload = function() {
 
 <?php
 // Handle search results
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $event = sanitize($_POST['event'] ?? '');
-    $minTimeStr = sanitize($_POST['minTime'] ?? '');
-    $maxTimeStr = sanitize($_POST['maxTime'] ?? '');
+if (!empty($event) && !empty($minTimeStr) && !empty($maxTimeStr)) {
+    // Convert to seconds
+    $minTime = timeToSeconds($minTimeStr);
+    $maxTime = timeToSeconds($maxTimeStr);
     
-    if (empty($event) || empty($minTimeStr) || empty($maxTimeStr)) {
-        echo showMessage("All fields are required", true);
-    } else {
-        // Convert to seconds
-        $minTime = timeToSeconds($minTimeStr);
-        $maxTime = timeToSeconds($maxTimeStr);
+    // Search for swimmers
+    $stmt = $conn->prepare(
+        "SELECT s.name, s.gender, s.hometown, s.team, s.powerIndex, sw.time 
+        FROM Swimmer s
+        JOIN Swim sw ON s.swimmerID = sw.swimmerID
+        WHERE sw.eventName = ? AND sw.time BETWEEN ? AND ?
+        ORDER BY sw.time ASC"
+    );
+    
+    $stmt->bind_param('sdd', $event, $minTime, $maxTime);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    if ($result->num_rows > 0) {
+        echo "<h2>Results</h2>";
+        echo "<table>";
+        echo "<tr><th>Name</th><th>Gender</th><th>Hometown</th><th>Team</th><th>Power Index</th><th>Time</th></tr>";
         
-        // Search for swimmers
-        $stmt = $conn->prepare(
-            "SELECT s.name, s.gender, s.hometown, s.team, s.powerIndex, sw.time 
-            FROM Swimmer s
-            JOIN Swim sw ON s.swimmerID = sw.swimmerID
-            WHERE sw.eventName = ? AND sw.time BETWEEN ? AND ?
-            ORDER BY sw.time ASC"
-        );
-        
-        $stmt->bind_param('sdd', $event, $minTime, $maxTime);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        
-        if ($result->num_rows > 0) {
-            echo "<h2>Results</h2>";
-            echo "<table>";
-            echo "<tr><th>Name</th><th>Gender</th><th>Hometown</th><th>Team</th><th>Power Index</th><th>Time</th></tr>";
-            
-            while ($row = $result->fetch_assoc()) {
-                echo "<tr>";
-                echo "<td>" . htmlspecialchars($row['name']) . "</td>";
-                echo "<td>" . htmlspecialchars($row['gender']) . "</td>";
-                echo "<td>" . htmlspecialchars($row['hometown']) . "</td>";
-                echo "<td>" . htmlspecialchars($row['team']) . "</td>";
-                echo "<td>" . htmlspecialchars($row['powerIndex']) . "</td>";
-                echo "<td>" . secondsToTime($row['time']) . "</td>";
-                echo "</tr>";
-            }
-            
-            echo "</table>";
-        } else {
-            echo showMessage("No swimmers found matching your criteria");
+        while ($row = $result->fetch_assoc()) {
+            echo "<tr>";
+            echo "<td>" . htmlspecialchars($row['name']) . "</td>";
+            echo "<td>" . htmlspecialchars($row['gender']) . "</td>";
+            echo "<td>" . htmlspecialchars($row['hometown']) . "</td>";
+            echo "<td>" . htmlspecialchars($row['team']) . "</td>";
+            echo "<td>" . htmlspecialchars($row['powerIndex']) . "</td>";
+            echo "<td>" . secondsToTime($row['time']) . "</td>";
+            echo "</tr>";
         }
+        
+        echo "</table>";
+    } else {
+        echo showMessage("No swimmers found matching your criteria");
     }
 }
 ?>
 
-<p><a href="../home.php">Back to Home</a></p>
+<p><a href="../home.php" class="button">Back to Home</a></p>
 
 <?php include '../includes/footer.php'; ?>

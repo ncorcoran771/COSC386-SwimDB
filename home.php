@@ -20,30 +20,26 @@ include 'includes/header.php';
 <p>Choose what you would like to do:</p>
 
 <?php if ($role === 'swimmer' || $role === 'admin' || $role === 'guest'): ?>
+    <h2>Swimmer Options</h2>
     <div class="nav">
-        <h2>Swimmer Options</h2>
         <a href="swimmer/search.php">Search Swimmers by Time</a>
     </div>
 <?php endif; ?>
 
 <?php if ($role === 'admin'): ?>
+    <h2>Administrator Tools</h2>
     <div class="nav">
-        <h2>Swimmer Management</h2>
         <a href="admin/operations.php?action=insert&entity=swimmer">Add New Swimmer</a>
         <a href="admin/operations.php?action=search&entity=swimmer">Search Swimmers</a>
         <a href="admin/operations.php?action=delete&entity=swimmer">Delete Swimmer</a>
         <a href="admin/operations.php?action=insert&entity=swim">Add Swim Times</a>
-    </div>
-
-    <div class="nav">
-        <h2>Admin Management</h2>
         <a href="admin/operations.php?action=search&entity=admin">Search Admin</a>
         <a href="admin/operations.php?action=insert&entity=admin">Add Admin</a>
         <a href="admin/operations.php?action=delete&entity=admin">Delete Admin</a>
     </div>
 
+    <h2>View Data</h2>
     <div class="nav">
-        <h2>View Data</h2>
         <a href="admin/operations.php?action=view&entity=conferences">View Conferences</a>
         <a href="admin/operations.php?action=view&entity=meets">View Meets</a>
         <a href="admin/operations.php?action=view&entity=swims">View Swim Records</a>

@@ -1,4 +1,4 @@
-/* Main styles from indexp.php */
+/* Reset and base styles */
 body {
     font-family: Arial, sans-serif;
     background: #e0f7fa;
@@ -14,6 +14,35 @@ body {
     max-width: 1200px;
     width: 100%;
     margin: 0 auto;
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+h1, h2 {
+    color: #00796b;
+}
+
+/* Navigation styles */
+.nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.nav a {
+    padding: 10px 15px;
+    background: #00796b;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+}
+
+.nav a:hover {
+    background-color: #004d40;
 }
 
 /* Login styles */
@@ -61,31 +90,6 @@ body {
 
 .login-form a:hover {
     text-decoration: underline;
-}
-
-/* Navigation styles from home.php */
-h1, h2 {
-    color: #00796b;
-}
-
-.nav {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 20px;
-    margin-bottom: 20px;
-}
-
-.nav a {
-    padding: 10px 15px;
-    background: #00796b;
-    color: white;
-    text-decoration: none;
-    border-radius: 5px;
-}
-
-.nav a:hover {
-    background-color: #004d40;
 }
 
 /* Form styles */
@@ -192,4 +196,27 @@ tr:nth-child(even) {
     font-size: 0.85em;
     color: #666;
     margin-top: 3px;
+}
+
+/* Back link styling */
+p a {
+    color: #00796b;
+    text-decoration: none;
+}
+
+p a:hover {
+    text-decoration: underline;
+}
+
+/* Search form specific styles */
+#timeForm {
+    margin-top: 20px;
+    display: none;
+}
+
+/* Footer styles */
+footer {
+    margin-top: 30px;
+    text-align: center;
+    color: #666;
 }
