@@ -1,11 +1,11 @@
 <?php
 session_start();
-$conn = mysqli_connect("localhost", "eknights1", "eknights1", "athleticsRecruitingDB");
-if (!$conn) die("Connection failed: " . mysqli_connect_error());
+include('DB.php');  // Include DB.php for database connection
 
 $meetName = $_GET['meetName'] ?? '';
 $location = $_GET['location'] ?? '';
 
+// Query to fetch meet data based on search parameters
 $query = "SELECT * FROM Meet WHERE 1=1";
 if (!empty($meetName)) {
     $meetName = mysqli_real_escape_string($conn, $meetName);
@@ -18,6 +18,7 @@ if (!empty($location)) {
 
 $result = mysqli_query($conn, $query);
 ?>
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -59,8 +60,6 @@ $result = mysqli_query($conn, $query);
             </table>
         </div>
     </div>
-
-    <!-- Navigation Links -->
     <div>
         <a href="home.php">Back to Home</a> | 
         <a href="logout.php">Logout</a>
@@ -68,3 +67,4 @@ $result = mysqli_query($conn, $query);
 </body>
 </html>
 <?php mysqli_close($conn); ?>
+
