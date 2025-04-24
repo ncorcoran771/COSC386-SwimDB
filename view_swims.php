@@ -1,6 +1,9 @@
 <?php
 session_start();
 
+// Include DB.php for database connection
+include('DB.php');
+
 // Temporary bypass for development (remove comments below to re-enable login requirement)
 /*
 if (!isset($_SESSION['loggedIN']) || !$_SESSION['loggedIN']) {
@@ -12,31 +15,47 @@ if (!isset($_SESSION['loggedIN']) || !$_SESSION['loggedIN']) {
 $user = $_SESSION['userData']['name'] ?? 'Guest';
 $role = $_SESSION['userData']['type'] ?? 'guest'; // guest, user, or admin
 
-// Mock data for swims (you can replace this with actual database data)
-$swims = [
-    ['eventName' => '100 Back', 'meetName' => 'Bay Classic', 'meetDate' => '20240909'],
-    ['eventName' => '100 Breast', 'meetName' => 'Bay Classic', 'meetDate' => '20240909'],
-    ['eventName' => '500 Free', 'meetName' => 'Conference Finals', 'meetDate' => '20241120'],
-    ['eventName' => '100 Fly', 'meetName' => 'Holiday Splash', 'meetDate' => '20241220'],
-    ['eventName' => '200 Free', 'meetName' => 'Holiday Splash', 'meetDate' => '20241220'],
-    ['eventName' => '100 Free', 'meetName' => 'State Champs', 'meetDate' => '20241110'],
-    ['eventName' => '50 Free', 'meetName' => 'State Champs', 'meetDate' => '20241110'],
-    ['eventName' => '200 IM', 'meetName' => 'Winter Invite', 'meetDate' => '20241211'],
-];
+// Base query
+$sql = "SELECT * FROM Swim WHERE 1=1";
+$params = [];
 
 // Handle search filters
-$filteredSwims = $swims;
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $searchEvent = $_POST['eventName'] ?? '';
-    $searchMeet = $_POST['meetName'] ?? '';
-    $searchDate = $_POST['meetDate'] ?? '';
-
-    $filteredSwims = array_filter($swims, function($swim) use ($searchEvent, $searchMeet, $searchDate) {
-        return (empty($searchEvent) || stripos($swim['eventName'], $searchEvent) !== false) &&
-               (empty($searchMeet) || stripos($swim['meetName'], $searchMeet) !== false) &&
-               (empty($searchDate) || stripos($swim['meetDate'], $searchDate) !== false);
-    });
+    if (!empty($_POST['eventName'])) {
+        $sql .= " AND eventName LIKE ?";
+        $params[] = '%' . $_POST['eventName'] . '%';
+    }
+    if (!empty($_POST['meetName'])) {
+        $sql .= " AND meetName LIKE ?";
+        $params[] = '%' . $_POST['meetName'] . '%';
+    }
+    if (!empty($_POST['meetDate'])) {
+        $sql .= " AND meetDate LIKE ?";
+        $params[] = '%' . $_POST['meetDate'] . '%';
+    }
+    if (!empty($_POST['swimmerID'])) {
+        $sql .= " AND swimmerID = ?";
+        $params[] = $_POST['swimmerID'];
+    }
+    if (!empty($_POST['time'])) {
+        $sql .= " AND time LIKE ?";
+        $params[] = '%' . $_POST['time'] . '%';
+    }
 }
+
+// Prepare and execute the query
+$stmt = $conn->prepare($sql);
+
+// Bind the parameters dynamically
+if (!empty($params)) {
+    $types = str_repeat("s", count($params)); // All parameters as strings
+    $stmt->bind_param($types, ...$params);
+}
+
+$stmt->execute();
+$result = $stmt->get_result();
+$filteredSwims = $result->fetch_all(MYSQLI_ASSOC);
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -50,7 +69,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <form method="POST">
         <input type="text" name="eventName" placeholder="Search by Event Name" value="<?= htmlspecialchars($_POST['eventName'] ?? '') ?>">
         <input type="text" name="meetName" placeholder="Search by Meet Name" value="<?= htmlspecialchars($_POST['meetName'] ?? '') ?>">
-        <input type="text" name="meetDate" placeholder="Search by Meet Date" value="<?= htmlspecialchars($_POST['meetDate'] ?? '') ?>">
+        <input type="text" name="meetDate" placeholder="Search by Meet Date (YYYY-MM-DD)" value="<?= htmlspecialchars($_POST['meetDate'] ?? '') ?>">
+        <input type="text" name="swimmerID" placeholder="Search by Swimmer ID" value="<?= htmlspecialchars($_POST['swimmerID'] ?? '') ?>">
+        <input type="text" name="time" placeholder="Search by Time" value="<?= htmlspecialchars($_POST['time'] ?? '') ?>">
         <button type="submit">Search</button>
     </form>
 
@@ -60,12 +81,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <th>Event Name</th>
                 <th>Meet Name</th>
                 <th>Meet Date</th>
+                <th>Swimmer ID</th>
+                <th>Time</th>
             </tr>
         </thead>
         <tbody>
             <?php if (empty($filteredSwims)): ?>
                 <tr>
-                    <td colspan="3">No results found</td>
+                    <td colspan="5">No results found</td>
                 </tr>
             <?php else: ?>
                 <?php foreach ($filteredSwims as $swim): ?>
@@ -73,15 +96,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <td><?= htmlspecialchars($swim['eventName']) ?></td>
                         <td><?= htmlspecialchars($swim['meetName']) ?></td>
                         <td><?= htmlspecialchars($swim['meetDate']) ?></td>
+                        <td><?= htmlspecialchars($swim['swimmerID']) ?></td>
+                        <td><?= htmlspecialchars($swim['time']) ?></td>
                     </tr>
                 <?php endforeach; ?>
             <?php endif; ?>
         </tbody>
     </table>
 
-       <div>
+    <div>
         <a href="home.php">Back to Home</a> | 
         <a href="logout.php">Logout</a>
     </div>
 </body>
 </html>
+
+<?php
+$conn->close();
+?>
