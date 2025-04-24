@@ -57,6 +57,10 @@ $result = mysqli_query($conn, $query);
             </table>
         </div>
     </div>
+       <div>
+        <a href="home.php">Back to Home</a> | 
+        <a href="logout.php">Logout</a>
+    </div>
 </body>
 </html>
 <?php mysqli_close($conn); ?>
