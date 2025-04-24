@@ -167,3 +167,29 @@ th {
 tr:nth-child(even) {
     background-color: #f2f2f2;
 }
+
+/* Button styles */
+.button {
+    display: inline-block;
+    padding: 8px 12px;
+    background: #00796b;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    margin-right: 5px;
+    margin-bottom: 5px;
+}
+
+.button:hover {
+    background: #004d40;
+}
+
+/* Help text */
+.help {
+    display: block;
+    font-size: 0.85em;
+    color: #666;
+    margin-top: 3px;
+}

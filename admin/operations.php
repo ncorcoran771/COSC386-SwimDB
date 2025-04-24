@@ -38,7 +38,14 @@ switch ("$entity:$action") {
             $stmt->bind_param('ss', $name, $role);
             
             if ($stmt->execute()) {
-                echo showMessage("Admin added successfully");
+                $adminID = $conn->insert_id;
+                echo showMessage("Admin added successfully. New Admin ID: $adminID");
+                // Clear form by redirection
+                echo "<script>
+                    setTimeout(function(){
+                        window.location.href = 'operations.php?action=insert&entity=admin&success=true';
+                    }, 2000);
+                </script>";
             } else {
                 echo showMessage("Error adding admin: " . $stmt->error, true);
             }
@@ -111,6 +118,12 @@ switch ("$entity:$action") {
             
             if ($stmt->execute()) {
                 echo showMessage("Admin deleted successfully");
+                // Redirect after success
+                echo "<script>
+                    setTimeout(function(){
+                        window.location.href = 'operations.php?action=delete&entity=admin&success=true';
+                    }, 2000);
+                </script>";
             } else {
                 echo showMessage("Error deleting admin: " . $stmt->error, true);
             }
@@ -141,38 +154,46 @@ switch ("$entity:$action") {
             $stmt->bind_param('sisss', $name, $powerIndex, $gender, $hometown, $team);
             
             if ($stmt->execute()) {
-                echo showMessage("Swimmer added successfully");
+                $swimmerID = $conn->insert_id;
+                echo showMessage("Swimmer added successfully. New Swimmer ID: $swimmerID");
+                
+                // Ask if user wants to add swim times
+                echo "<div class='message'>";
+                echo "<p>Would you like to add swim times for this swimmer?</p>";
+                echo "<a href='operations.php?action=insert&entity=swim&swimmer=$swimmerID' class='button'>Yes, add swim times</a> ";
+                echo "<a href='operations.php?action=insert&entity=swimmer&success=true' class='button'>No, add another swimmer</a>";
+                echo "</div>";
             } else {
                 echo showMessage("Error adding swimmer: " . $stmt->error, true);
             }
+        } else {
+            // Swimmer insert form
+            ?>
+            <form method="post">
+                <div>
+                    <label for="name">Name:</label>
+                    <input type="text" name="name" required>
+                </div>
+                <div>
+                    <label for="powerIndex">Power Index:</label>
+                    <input type="number" name="powerIndex" required>
+                </div>
+                <div>
+                    <label for="gender">Gender:</label>
+                    <input type="text" name="gender" maxlength="1" required>
+                </div>
+                <div>
+                    <label for="hometown">Hometown:</label>
+                    <input type="text" name="hometown" required>
+                </div>
+                <div>
+                    <label for="team">Team:</label>
+                    <input type="text" name="team" required>
+                </div>
+                <button type="submit">Add Swimmer</button>
+            </form>
+            <?php
         }
-        
-        // Swimmer insert form
-        ?>
-        <form method="post">
-            <div>
-                <label for="name">Name:</label>
-                <input type="text" name="name" required>
-            </div>
-            <div>
-                <label for="powerIndex">Power Index:</label>
-                <input type="number" name="powerIndex" required>
-            </div>
-            <div>
-                <label for="gender">Gender:</label>
-                <input type="text" name="gender" maxlength="1" required>
-            </div>
-            <div>
-                <label for="hometown">Hometown:</label>
-                <input type="text" name="hometown" required>
-            </div>
-            <div>
-                <label for="team">Team:</label>
-                <input type="text" name="team" required>
-            </div>
-            <button type="submit">Add Swimmer</button>
-        </form>
-        <?php
         break;
         
     case 'swimmer:delete':
@@ -185,6 +206,12 @@ switch ("$entity:$action") {
             
             if ($stmt->execute()) {
                 echo showMessage("Swimmer deleted successfully");
+                // Redirect after success
+                echo "<script>
+                    setTimeout(function(){
+                        window.location.href = 'operations.php?action=delete&entity=swimmer&success=true';
+                    }, 2000);
+                </script>";
             } else {
                 echo showMessage("Error deleting swimmer: " . $stmt->error, true);
             }
@@ -200,6 +227,284 @@ switch ("$entity:$action") {
             <button type="submit">Delete Swimmer</button>
         </form>
         <?php
+        break;
+        
+    // NEW CASE: Add swim time for swimmers
+    case 'swim:insert':
+        $swimmerID = isset($_GET['swimmer']) ? intval($_GET['swimmer']) : 0;
+        
+        // If swimmerID is provided, pre-select that swimmer
+        if ($swimmerID > 0) {
+            // Get swimmer name
+            $stmt = $conn->prepare("SELECT name FROM Swimmer WHERE swimmerID = ?");
+            $stmt->bind_param('i', $swimmerID);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            if ($row = $result->fetch_assoc()) {
+                $swimmerName = htmlspecialchars($row['name']);
+            } else {
+                $swimmerName = "Unknown Swimmer";
+            }
+        }
+        
+        // Process form submission
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $swimmerID = sanitize($_POST['swimmerID']);
+            $eventName = sanitize($_POST['eventName']);
+            $meetName = sanitize($_POST['meetName']);
+            $meetDate = sanitize($_POST['meetDate']);
+            $timeStr = sanitize($_POST['time']);
+            
+            // Convert time to seconds for DB storage
+            $timeInSeconds = timeToSeconds($timeStr);
+            
+            // Check if meet exists, if not create it
+            $stmt = $conn->prepare("SELECT * FROM Meet WHERE meetName = ? AND date = ?");
+            $stmt->bind_param('ss', $meetName, $meetDate);
+            $stmt->execute();
+            
+            if ($stmt->get_result()->num_rows === 0) {
+                // Default location if not provided
+                $location = sanitize($_POST['meetLocation'] ?? 'Unknown');
+                
+                // Insert new meet
+                $stmt = $conn->prepare("INSERT INTO Meet (meetName, location, date) VALUES (?, ?, ?)");
+                $stmt->bind_param('sss', $meetName, $location, $meetDate);
+                $stmt->execute();
+            }
+            
+            // Insert swim record
+            $stmt = $conn->prepare("INSERT INTO Swim (eventName, meetName, meetDate, swimmerID, time) VALUES (?, ?, ?, ?, ?)");
+            $stmt->bind_param('sssid', $eventName, $meetName, $meetDate, $swimmerID, $timeInSeconds);
+            
+            if ($stmt->execute()) {
+                echo showMessage("Swim record added successfully");
+                
+                // Ask if user wants to add more swim times for this swimmer
+                echo "<div class='message'>";
+                echo "<p>Would you like to add another swim time?</p>";
+                echo "<a href='operations.php?action=insert&entity=swim&swimmer=$swimmerID' class='button'>Yes, for same swimmer</a> ";
+                echo "<a href='operations.php?action=insert&entity=swim' class='button'>Yes, for different swimmer</a> ";
+                echo "<a href='operations.php?action=view&entity=swims' class='button'>No, view all swims</a>";
+                echo "</div>";
+            } else {
+                echo showMessage("Error adding swim record: " . $stmt->error, true);
+            }
+        } else {
+            // Display form for adding swim times
+            ?>
+            <form method="post">
+                <div>
+                    <label for="swimmerID">Swimmer:</label>
+                    <?php if ($swimmerID > 0): ?>
+                        <input type="hidden" name="swimmerID" value="<?= $swimmerID ?>">
+                        <p><strong><?= $swimmerName ?> (ID: <?= $swimmerID ?>)</strong></p>
+                    <?php else: ?>
+                        <select name="swimmerID" required>
+                            <option value="">Select Swimmer</option>
+                            <?php
+                            // Get all swimmers
+                            $result = $conn->query("SELECT swimmerID, name FROM Swimmer ORDER BY name");
+                            while ($row = $result->fetch_assoc()) {
+                                echo "<option value='".htmlspecialchars($row['swimmerID'])."'>".
+                                    htmlspecialchars($row['name'])." (ID: ".htmlspecialchars($row['swimmerID']).")</option>";
+                            }
+                            ?>
+                        </select>
+                    <?php endif; ?>
+                </div>
+                
+                <div>
+                    <label for="eventName">Event:</label>
+                    <select name="eventName" required>
+                        <option value="">Select Event</option>
+                        <optgroup label="Freestyle">
+                            <option value="50y Freestyle">50y Freestyle</option>
+                            <option value="100y Freestyle">100y Freestyle</option>
+                            <option value="200y Freestyle">200y Freestyle</option>
+                            <option value="500y Freestyle">500y Freestyle</option>
+                            <option value="1000y Freestyle">1000y Freestyle</option>
+                            <option value="1650y Freestyle">1650y Freestyle</option>
+                        </optgroup>
+                        <optgroup label="Backstroke">
+                            <option value="50y Backstroke">50y Backstroke</option>
+                            <option value="100y Backstroke">100y Backstroke</option>
+                            <option value="200y Backstroke">200y Backstroke</option>
+                        </optgroup>
+                        <optgroup label="Butterfly">
+                            <option value="50y Butterfly">50y Butterfly</option>
+                            <option value="100y Butterfly">100y Butterfly</option>
+                            <option value="200y Butterfly">200y Butterfly</option>
+                        </optgroup>
+                        <optgroup label="Breaststroke">
+                            <option value="50y Breaststroke">50y Breaststroke</option>
+                            <option value="100y Breaststroke">100y Breaststroke</option>
+                            <option value="200y Breaststroke">200y Breaststroke</option>
+                        </optgroup>
+                        <optgroup label="IM">
+                            <option value="100y IM">100y IM</option>
+                            <option value="200y IM">200y IM</option>
+                            <option value="400y IM">400y IM</option>
+                        </optgroup>
+                    </select>
+                </div>
+                
+                <div>
+                    <label for="time">Time (mm:ss:ms):</label>
+                    <input type="text" name="time" placeholder="e.g., 01:23:45" required>
+                    <span class="help">Format: minutes:seconds:milliseconds</span>
+                </div>
+                
+                <div>
+                    <label for="meetName">Meet Name:</label>
+                    <input type="text" name="meetName" required>
+                </div>
+                
+                <div>
+                    <label for="meetLocation">Meet Location:</label>
+                    <input type="text" name="meetLocation" required>
+                </div>
+                
+                <div>
+                    <label for="meetDate">Meet Date:</label>
+                    <input type="date" name="meetDate" required>
+                </div>
+                
+                <button type="submit">Add Swim Time</button>
+            </form>
+            <?php
+        }
+        break;
+        
+    // NEW CASE: Search swimmers by various criteria
+    case 'swimmer:search':
+        ?>
+        <form method="post">
+            <div>
+                <label for="searchType">Search By:</label>
+                <select name="searchType" id="searchType" onchange="showAppropriateFields()">
+                    <option value="name">Name</option>
+                    <option value="team">Team</option>
+                    <option value="hometown">Hometown</option>
+                    <option value="id">Swimmer ID</option>
+                </select>
+            </div>
+            
+            <div id="nameField">
+                <label for="nameQuery">Name:</label>
+                <input type="text" name="nameQuery" placeholder="Enter swimmer name">
+            </div>
+            
+            <div id="teamField" style="display:none">
+                <label for="teamQuery">Team:</label>
+                <input type="text" name="teamQuery" placeholder="Enter team name">
+            </div>
+            
+            <div id="hometownField" style="display:none">
+                <label for="hometownQuery">Hometown:</label>
+                <input type="text" name="hometownQuery" placeholder="Enter hometown">
+            </div>
+            
+            <div id="idField" style="display:none">
+                <label for="idQuery">Swimmer ID:</label>
+                <input type="number" name="idQuery" placeholder="Enter swimmer ID">
+            </div>
+            
+            <button type="submit">Search</button>
+        </form>
+        
+        <script>
+        function showAppropriateFields() {
+            const searchType = document.getElementById('searchType').value;
+            
+            // Hide all fields
+            document.getElementById('nameField').style.display = 'none';
+            document.getElementById('teamField').style.display = 'none';
+            document.getElementById('hometownField').style.display = 'none';
+            document.getElementById('idField').style.display = 'none';
+            
+            // Show selected field
+            document.getElementById(searchType + 'Field').style.display = 'block';
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', showAppropriateFields);
+        </script>
+        
+        <?php
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $searchType = sanitize($_POST['searchType'] ?? 'name');
+            $query = '';
+            $param = '';
+            
+            // Build query based on search type
+            switch ($searchType) {
+                case 'name':
+                    $nameQuery = sanitize($_POST['nameQuery'] ?? '');
+                    if (!empty($nameQuery)) {
+                        $query = "SELECT * FROM Swimmer WHERE name LIKE ?";
+                        $param = "%$nameQuery%";
+                    }
+                    break;
+                    
+                case 'team':
+                    $teamQuery = sanitize($_POST['teamQuery'] ?? '');
+                    if (!empty($teamQuery)) {
+                        $query = "SELECT * FROM Swimmer WHERE team LIKE ?";
+                        $param = "%$teamQuery%";
+                    }
+                    break;
+                    
+                case 'hometown':
+                    $hometownQuery = sanitize($_POST['hometownQuery'] ?? '');
+                    if (!empty($hometownQuery)) {
+                        $query = "SELECT * FROM Swimmer WHERE hometown LIKE ?";
+                        $param = "%$hometownQuery%";
+                    }
+                    break;
+                    
+                case 'id':
+                    $idQuery = sanitize($_POST['idQuery'] ?? '');
+                    if (!empty($idQuery)) {
+                        $query = "SELECT * FROM Swimmer WHERE swimmerID = ?";
+                        $param = $idQuery;
+                    }
+                    break;
+            }
+            
+            if (!empty($query) && !empty($param)) {
+                $stmt = $conn->prepare($query);
+                $stmt->bind_param('s', $param);
+                $stmt->execute();
+                $result = $stmt->get_result();
+                
+                if ($result->num_rows > 0) {
+                    echo "<h2>Results</h2>";
+                    echo "<table>";
+                    echo "<tr><th>ID</th><th>Name</th><th>Gender</th><th>Hometown</th><th>Team</th><th>Power Index</th><th>Actions</th></tr>";
+                    
+                    while ($row = $result->fetch_assoc()) {
+                        echo "<tr>";
+                        echo "<td>" . htmlspecialchars($row['swimmerID']) . "</td>";
+                        echo "<td>" . htmlspecialchars($row['name']) . "</td>";
+                        echo "<td>" . htmlspecialchars($row['gender']) . "</td>";
+                        echo "<td>" . htmlspecialchars($row['hometown']) . "</td>";
+                        echo "<td>" . htmlspecialchars($row['team']) . "</td>";
+                        echo "<td>" . htmlspecialchars($row['powerIndex']) . "</td>";
+                        echo "<td>
+                            <a href='operations.php?action=insert&entity=swim&swimmer=" . $row['swimmerID'] . "' class='button'>Add Times</a>
+                          </td>";
+                        echo "</tr>";
+                    }
+                    
+                    echo "</table>";
+                } else {
+                    echo showMessage("No swimmers found matching your criteria");
+                }
+            } else {
+                echo showMessage("Please enter search criteria", true);
+            }
+        }
         break;
         
     case 'view:conferences':
@@ -222,10 +527,26 @@ switch ("$entity:$action") {
             break;
         }
         
-        $result = $conn->query("SELECT * FROM $dbTable");
+        // For swims table, join with swimmer to show names
+        if ($dbTable === 'Swim') {
+            $query = "SELECT s.eventName, s.meetName, s.meetDate, s.swimmerID, 
+                     sw.name AS swimmerName, s.time 
+                     FROM Swim s 
+                     JOIN Swimmer sw ON s.swimmerID = sw.swimmerID 
+                     ORDER BY s.meetDate DESC, s.eventName";
+            $result = $conn->query($query);
+        } else {
+            $result = $conn->query("SELECT * FROM $dbTable");
+        }
         
-        if ($result->num_rows > 0) {
+        if ($result && $result->num_rows > 0) {
             echo "<h2>$dbTable Data</h2>";
+            
+            // Add action buttons for swims
+            if ($dbTable === 'Swim') {
+                echo "<p><a href='operations.php?action=insert&entity=swim' class='button'>Add New Swim Record</a></p>";
+            }
+            
             echo "<table>";
             
             // Get column names
@@ -242,8 +563,13 @@ switch ("$entity:$action") {
             // Display data
             while ($row = $result->fetch_assoc()) {
                 echo "<tr>";
-                foreach ($row as $value) {
-                    echo "<td>" . htmlspecialchars($value) . "</td>";
+                foreach ($row as $column => $value) {
+                    // Format time for better readability if this is the time column
+                    if ($column === 'time' && $dbTable === 'Swim') {
+                        echo "<td>" . secondsToTime($value) . "</td>";
+                    } else {
+                        echo "<td>" . htmlspecialchars($value) . "</td>";
+                    }
                 }
                 echo "</tr>";
             }
