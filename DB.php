@@ -1,11 +1,13 @@
 <?php
-$servername = "localhost";
+$servername = "localhost"; // or your server address
 $username = "eknights1";
 $password = "eknights1";
-$dbname = "eknights1DB";
+$dbname = "athleticsRecruitingDB";
 
+// Create connection
 $conn = new mysqli($servername, $username, $password, $dbname);
 
+// Check connection
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
