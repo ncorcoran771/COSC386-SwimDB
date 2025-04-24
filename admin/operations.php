@@ -237,6 +237,27 @@ switch ("$entity:$action") {
         
     // NEW CASE: Add swim time for swimmers
     case 'swim:insert':
+
+        echo "<div class='message'>";
+        echo "<h3>Debugging Table Structure</h3>";
+        $tableStructureResult = $conn->query("DESCRIBE Swim");
+        if ($tableStructureResult) {
+            echo "<table border='1'>";
+            echo "<tr><th>Field</th><th>Type</th><th>Null</th><th>Key</th><th>Default</th><th>Extra</th></tr>";
+            while ($row = $tableStructureResult->fetch_assoc()) {
+                echo "<tr>";
+                foreach ($row as $key => $value) {
+                    echo "<td>" . htmlspecialchars($value ?? 'NULL') . "</td>";
+                }
+                echo "</tr>";
+            }
+            echo "</table>";
+        } else {
+            echo "Error getting table structure: " . $conn->error;
+        }
+        echo "</div>";
+        
+
         $swimmerID = isset($_GET['swimmer']) ? intval($_GET['swimmer']) : 0;
         
         // If swimmerID is provided, pre-select that swimmer
@@ -259,7 +280,11 @@ switch ("$entity:$action") {
             $eventName = sanitize($_POST['eventName']);
             $meetName = sanitize($_POST['meetName']);
             $meetDate = sanitize($_POST['meetDate']);
-            // Ensure the date is in MySQL format (YYYY-MM-DD)
+            
+            // IMPROVED DATE VALIDATION - Fix for date truncation error
+            // Ensure the date is properly formatted for MySQL
+            $meetDate = trim($meetDate); // Remove any whitespace
+            
             if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $meetDate)) {
                 // Try to convert to correct format if it's in another valid date format
                 $timestamp = strtotime($meetDate);
@@ -269,10 +294,29 @@ switch ("$entity:$action") {
                 }
                 $meetDate = date('Y-m-d', $timestamp);
             }
+            
+            // Validate date range for MySQL (1000-01-01 to 9999-12-31)
+            $year = (int)substr($meetDate, 0, 4);
+            if ($year < 1000 || $year > 9999) {
+                echo showMessage("Date year must be between 1000 and 9999.", true);
+                exit;
+            }
+            
             $timeStr = sanitize($_POST['time']);
             
             // Convert time to seconds for DB storage
             $timeInSeconds = timeToSeconds($timeStr);
+            
+            // Debug information to help troubleshoot
+            /*
+            echo "<div class='message'>";
+            echo "Debug information:<br>";
+            echo "Meet Name: " . htmlspecialchars($meetName) . "<br>";
+            echo "Location: " . sanitize($_POST['meetLocation'] ?? 'Unknown') . "<br>";
+            echo "Date (as received): " . htmlspecialchars($_POST['meetDate']) . "<br>";
+            echo "Date (after processing): " . htmlspecialchars($meetDate) . "<br>";
+            echo "</div>";
+            */
             
             // Check if meet exists, if not create it
             $stmt = $conn->prepare("SELECT * FROM Meet WHERE meetName = ? AND date = ?");
@@ -284,17 +328,6 @@ switch ("$entity:$action") {
                 $location = sanitize($_POST['meetLocation'] ?? 'Unknown');
                 
                 // Insert new meet
-                
-                // Add this debugging section before the Meet insertion if needed
-                /*
-                echo "<div class='message'>";
-                echo "Debug information:<br>";
-                echo "Meet Name: " . htmlspecialchars($meetName) . "<br>";
-                echo "Location: " . htmlspecialchars($location) . "<br>";
-                echo "Date (as received): " . htmlspecialchars($meetDate) . "<br>";
-                echo "</div>";
-                */
-
                 $stmt = $conn->prepare("INSERT INTO Meet (meetName, location, date) VALUES (?, ?, ?)");
                 $stmt->bind_param('sss', $meetName, $location, $meetDate);
                 $stmt->execute();
