@@ -30,7 +30,8 @@ $role = $_SESSION['userData']['type'] ?? 'guest'; // guest, user, or admin
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
-            margin-top: 20px;
+            margin-top: 10px;
+            margin-bottom: 30px;
         }
         .nav a {
             padding: 10px 15px;
@@ -49,18 +50,19 @@ $role = $_SESSION['userData']['type'] ?? 'guest'; // guest, user, or admin
     <p>Choose what you would like to do:</p>
 
     <?php if ($role === 'user'): ?>
+        <h2>User Options</h2>
         <div class="nav">
-            <h2>User Options</h2>
             <a href="view_conferences.php">View Conferences</a>
             <a href="view_meets.php">View Meets</a>
             <a href="view_swims.php">View Swims</a>
             <a href="view_teams.php">View Teams</a>
+            <a href="view_swimmers.php">View Swimmers</a>
         </div>
     <?php endif; ?>
 
     <?php if ($role === 'admin'): ?>
+        <h2>Administrator Tools</h2>
         <div class="nav">
-            <h2>Administrator Tools</h2>
             <!-- Admin user management -->
             <a href="insert_user.php">Insert User</a>
             <a href="delete_user.php">Delete User</a>
@@ -77,27 +79,32 @@ $role = $_SESSION['userData']['type'] ?? 'guest'; // guest, user, or admin
             <a href="delete_swim.php">Delete Swim</a>
             <a href="insert_team.php">Insert Team</a>
             <a href="delete_team.php">Delete Team</a>
+            <a href="insert_swimmer.php">Insert Swimmer</a>
+            <a href="delete_swimmer.php">Delete Swimmer</a>
         </div>
 
+        <h2>View Tables</h2>
         <div class="nav">
-            <h2>View Tables</h2>
             <a href="view_conferences.php">View Conferences</a>
             <a href="view_meets.php">View Meets</a>
             <a href="view_swims.php">View Swims</a>
             <a href="view_teams.php">View Teams</a>
+            <a href="view_swimmers.php">View Swimmers</a>
         </div>
     <?php endif; ?>
 
     <?php if ($role === 'guest'): ?>
+        <h2>View Tables</h2>
         <div class="nav">
-            <h2>View Tables</h2>
             <a href="view_conferences.php">View Conferences</a>
             <a href="view_meets.php">View Meets</a>
             <a href="view_swims.php">View Swims</a>
             <a href="view_teams.php">View Teams</a>
+            <a href="view_swimmers.php">View Swimmers</a>
         </div>
     <?php endif; ?>
 
     <p><a href="logout.php">Logout</a></p>
 </body>
 </html>
+
