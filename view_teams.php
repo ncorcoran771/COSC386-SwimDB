@@ -79,10 +79,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         </tbody>
     </table>
 
-    <div>
-        <a href="index.php">Back to Home</a>
+      <div>
+        <a href="home.php">Back to Home</a> | 
+        <a href="logout.php">Logout</a>
     </div>
-
-    <p><a href="logout.php">Logout</a></p>
 </body>
 </html>
