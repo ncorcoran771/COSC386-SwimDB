@@ -26,18 +26,6 @@ function redirect($url, $message = '') {
     exit;
 }
 
-// Convert time string (mm:ss:ms) to seconds
-function timeToSeconds($timeStr) {
-    if (empty($timeStr)) return 0;
-    $parts = explode(':', $timeStr);
-    
-    // Explicitly cast parts to appropriate types
-    $minutes = (int)$parts[0];
-    $seconds = (float)$parts[1];
-    $milliseconds = (float)$parts[2] / 100;
-    
-    return ($minutes * 60) + $seconds + $milliseconds;
-}
 
 // Convert seconds to time string
 function secondsToTime($seconds) {
