@@ -59,7 +59,7 @@ include 'includes/sidebar.php';
                                           FROM Swim s
                                           LEFT JOIN Meet m ON s.meetName = m.meetName AND s.meetDate = m.date
                                           WHERE s.swimmerID = ?
-                                          ORDER BY s.meetDate DESC, s.eventName ASC");
+                                          ORDER BY s.meetDate ASC, s.eventName ASC");
                 $swimStmt->bind_param('i', $swimmerID);
                 $swimStmt->execute();
                 $swimResult = $swimStmt->get_result();
