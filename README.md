@@ -1,7 +1,7 @@
 # COSC386-SwimDB
 Swimming Recruitment database for COSC 386
 
-https://lamp.salisbury.edu/~tbrozek1/COSC386-SwimDB/index.php
+https://lamp.salisbury.edu/~knorton3/COSC386-SwimDB/index.php
 ^Most up to date host for the project
 
 I'm using this as our todo / notes area
