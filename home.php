@@ -1,110 +1,58 @@
 <?php
-session_start();
+require_once 'includes/config.php';
+require_once 'includes/db.php';
+require_once 'includes/functions.php';
+require_once 'includes/auth.php';
 
-// Temporary bypass for development (remove comments below to re-enable login requirement)
-/*
-if (!isset($_SESSION['loggedIN']) || !$_SESSION['loggedIN']) {
-    echo "You are not logged in. <a href='indexp.php'>Login</a>";
-    exit;
-}
-*/
+$user = getCurrentUser();
+$username = htmlspecialchars($user['name']);
+$role = $user['type'];
 
-$user = $_SESSION['userData']['name'] ?? 'Guest';
-$role = $_SESSION['userData']['type'] ?? 'guest'; // guest, user, or admin
+include 'includes/header.php';
+include 'includes/sidebar.php';
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Swim Data Home</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #e0f7fa;
-            padding: 20px;
-        }
-        h1, h2 {
-            color: #00796b;
-        }
-        .nav {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 10px;
-            margin-bottom: 30px;
-        }
-        .nav a {
-            padding: 10px 15px;
-            background: #00796b;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-        }
-        .nav a:hover {
-            background-color: #004d40;
-        }
-    </style>
-</head>
 <body>
-    <h1>Welcome to Swim Data, <?= htmlspecialchars($user) ?>!</h1>
-    <p>Choose what you would like to do:</p>
+    <div class="main">
+        <div class="container">
+            <?php
+            // Display messages if any
+            if (isset($_SESSION['message'])) {
+                echo showMessage($_SESSION['message']);
+                unset($_SESSION['message']);
+            }
+            ?>
+            <h1>Welcome to Swim Data!</h1>
+            <p>Whether you're a coach, athlete, recruiter, or fan, Swim Data 
+                makes it easy to search and explore detailed information on swimmers, 
+                teams, conferences, meets, and individual performances. Track season 
+                progress, compare times, and dive deep into swimming statistics with 
+                our intuitive, user-friendly platform.</p>
+            
+            <?php if ($role === 'admin'): ?>
+                <h2>Administrator Tools</h2>
+                <div class="nav">
+                    <!-- New unified management interfaces -->
+                    <a href="swimmer_management.php">Swimmer Management</a>
+                    <a href="team_management.php">Team Management</a>
+                    
+                    <!-- Keep existing links for backward compatibility -->
+                    <a href="operations.php?action=insert&entity=swimmer">Add Swimmer</a>
+                    <a href="operations.php?action=search&entity=swimmer">Search Swimmers</a>
+                    <a href="operations.php?action=delete&entity=swimmer">Delete Swimmer</a>
+                    <a href="operations.php?action=insert&entity=swim">Add Swim Times</a>
+                    <a href="operations.php?action=search&entity=admin">Search Admin</a>
+                    <a href="operations.php?action=insert&entity=admin">Add Admin</a>
+                    <a href="operations.php?action=delete&entity=admin">Delete Admin</a>
+                </div>
+                
+            <?php endif; ?>
 
-    <?php if ($role === 'user'): ?>
-        <h2>User Options</h2>
-        <div class="nav">
-            <a href="view_conferences.php">View Conferences</a>
-            <a href="view_meets.php">View Meets</a>
-            <a href="view_swims.php">View Swims</a>
-            <a href="view_teams.php">View Teams</a>
-            <a href="view_swimmers.php">View Swimmers</a>
+            <br>
+
+            <?php if (isLoggedIn()): ?>
+                <a href="auth.php?action=logout">Log Out</a>
+            <?php endif; ?>
+            <?php include 'includes/footer.php'; ?>
         </div>
-    <?php endif; ?>
-
-    <?php if ($role === 'admin'): ?>
-        <h2>Administrator Tools</h2>
-        <div class="nav">
-            <!-- Admin user management -->
-            <a href="insert_user.php">Insert User</a>
-            <a href="delete_user.php">Delete User</a>
-            <a href="search_admin.php">Search Admin</a>
-            <a href="insert_admin.php">Insert Admin</a>
-            <a href="delete_admin.php">Delete Admin</a>
-
-            <!-- Admin management of main tables -->
-            <a href="insert_conference.php">Insert Conference</a>
-            <a href="delete_conference.php">Delete Conference</a>
-            <a href="insert_meet.php">Insert Meet</a>
-            <a href="delete_meet.php">Delete Meet</a>
-            <a href="insert_swim.php">Insert Swim</a>
-            <a href="delete_swim.php">Delete Swim</a>
-            <a href="insert_team.php">Insert Team</a>
-            <a href="delete_team.php">Delete Team</a>
-            <a href="insert_swimmer.php">Insert Swimmer</a>
-            <a href="delete_swimmer.php">Delete Swimmer</a>
-        </div>
-
-        <h2>View Tables</h2>
-        <div class="nav">
-            <a href="view_conferences.php">View Conferences</a>
-            <a href="view_meets.php">View Meets</a>
-            <a href="view_swims.php">View Swims</a>
-            <a href="view_teams.php">View Teams</a>
-            <a href="view_swimmers.php">View Swimmers</a>
-        </div>
-    <?php endif; ?>
-
-    <?php if ($role === 'guest'): ?>
-        <h2>View Tables</h2>
-        <div class="nav">
-            <a href="view_conferences.php">View Conferences</a>
-            <a href="view_meets.php">View Meets</a>
-            <a href="view_swims.php">View Swims</a>
-            <a href="view_teams.php">View Teams</a>
-            <a href="view_swimmers.php">View Swimmers</a>
-        </div>
-    <?php endif; ?>
-
-    <p><a href="logout.php">Logout</a></p>
+    </div>
 </body>
-</html>
-
