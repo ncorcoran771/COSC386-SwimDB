@@ -261,6 +261,7 @@ include 'includes/sidebar.php';
                         echo "<td>" . htmlspecialchars($row['powerIndex']) . "</td>";
                         echo "<td>" . htmlspecialchars($row['swimCount']) . "</td>";
                         echo "<td>
+                                <a href='swimmer_profile.php?id=" . $row['swimmerID'] . "' class='button'>View Profile</a>
                                 <a href='operations.php?action=insert&entity=swim&swimmer=" . $row['swimmerID'] . "' class='button'>Add Times</a>
                                 <button onclick='confirmDelete(" . $row['swimmerID'] . ", \"" . htmlspecialchars(addslashes($row['name'])) . "\", " . $row['swimCount'] . ")' class='button'>Delete</button>
                             </td>";

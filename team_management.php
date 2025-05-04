@@ -358,6 +358,7 @@ include 'includes/sidebar.php';
                         echo "<td>" . htmlspecialchars($row['confState']) . "</td>";
                         echo "<td>" . htmlspecialchars($row['swimmerCount']) . "</td>";
                         echo "<td>";
+                        echo "<a href='team_profile.php?team=" . urlencode($row['teamName']) . "' class='button'>View Profile</a> ";
                         echo "<a href='?action=edit_form&team=" . urlencode($row['teamName']) . "' class='button'>Edit</a> ";
                         
                         // Only show delete option if team has no swimmers

@@ -203,6 +203,11 @@ include 'includes/sidebar.php';
                 foreach (array_keys($firstRow) as $column) {
                     echo "<th>" . htmlspecialchars($column) . "</th>";
                 }
+                
+                // Add Actions column for Swimmers and Teams
+                if ($dbTable === 'Swimmer' || $dbTable === 'Team') {
+                    echo "<th>Actions</th>";
+                }
                 echo "</tr>";
                 
                 // Reset result pointer
@@ -219,6 +224,14 @@ include 'includes/sidebar.php';
                             echo "<td>" . htmlspecialchars($value) . "</td>";
                         }
                     }
+                    
+                    // Add links to profiles
+                    if ($dbTable === 'Swimmer') {
+                        echo "<td><a href='swimmer_profile.php?id=" . $row['swimmerID'] . "' class='button'>View Profile</a></td>";
+                    } elseif ($dbTable === 'Team') {
+                        echo "<td><a href='team_profile.php?team=" . urlencode($row['teamName']) . "' class='button'>View Profile</a></td>";
+                    }
+                    
                     echo "</tr>";
                 }
                 
