@@ -4,8 +4,33 @@ require_once 'includes/db.php';
 require_once 'includes/functions.php';
 require_once 'includes/auth.php';
 
+// Add debugging
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+// Basic execution test
+echo "<div style='background:#f8d7da; border:1px solid #f5c6cb; padding:10px; margin:10px 0;'>";
+echo "<h3>Basic Debug Information</h3>";
+
 // Get team name from URL parameter
 $teamName = isset($_GET['team']) ? sanitize($_GET['team']) : '';
+echo "<p>Team name parameter: '" . htmlspecialchars($teamName) . "'</p>";
+
+// Check database connection
+echo "<p>Database connection: " . ($conn ? "Working" : "FAILED") . "</p>";
+
+// Test if team exists
+if (!empty($teamName)) {
+    $checkStmt = $conn->prepare("SELECT COUNT(*) as count FROM Team WHERE teamName = ?");
+    $checkStmt->bind_param('s', $teamName);
+    $checkStmt->execute();
+    $checkResult = $checkStmt->get_result();
+    $checkRow = $checkResult->fetch_assoc();
+    echo "<p>Team exists in database: " . ($checkRow['count'] > 0 ? "Yes" : "NO - TEAM NOT FOUND") . "</p>";
+}
+
+echo "</div>";
 
 // Redirect if no team specified
 if (empty($teamName)) {
@@ -50,13 +75,13 @@ include 'includes/sidebar.php';
                 $swimmersResult = $swimmerStmt->get_result();
                 $swimmerCount = $swimmersResult->num_rows;
                 
-                // Get team performance data
+                // Get team performance data - FIXED QUERY
                 $performanceStmt = $conn->prepare(
-                    "SELECT s.eventName, COUNT(*) as eventCount, AVG(sw.time) as avgTime, MIN(sw.time) as bestTime 
+                    "SELECT sw.eventName, COUNT(*) as eventCount, AVG(sw.time) as avgTime, MIN(sw.time) as bestTime 
                      FROM Swimmer s 
                      JOIN Swim sw ON s.swimmerID = sw.swimmerID 
                      WHERE s.team = ? 
-                     GROUP BY s.eventName 
+                     GROUP BY sw.eventName 
                      ORDER BY eventCount DESC"
                 );
                 $performanceStmt->bind_param('s', $teamName);
@@ -75,6 +100,24 @@ include 'includes/sidebar.php';
                     $eventAvgTimes[] = $perfRow['avgTime'];
                     $eventBestTimes[] = $perfRow['bestTime'];
                 }
+                
+                // Add detailed diagnostic information
+                echo "<div style='background:#f8f8f8; border:1px solid #ddd; padding:10px; margin:10px 0;'>";
+                echo "<h3>Diagnostic Information</h3>";
+                echo "<p>Team data retrieved: " . ($row ? "Yes" : "No") . "</p>";
+                if ($row) {
+                    echo "<p>Team Name: " . htmlspecialchars($row['teamName']) . "</p>";
+                    echo "<p>Location: " . htmlspecialchars($row['location']) . "</p>";
+                    echo "<p>Conference: " . htmlspecialchars($row['confName']) . "</p>";
+                }
+                echo "<p>Swimmer count: " . $swimmerCount . "</p>";
+                echo "<p>Performance data points: " . count($eventLabels) . "</p>";
+                if (count($eventLabels) > 0) {
+                    echo "<p>Events: " . implode(", ", $eventLabels) . "</p>";
+                } else {
+                    echo "<p>No performance data available. Check if swimmers have swim records.</p>";
+                }
+                echo "</div>";
                 
                 // Display team header info
                 ?>
@@ -118,6 +161,10 @@ include 'includes/sidebar.php';
                             <canvas id="avgTimesChart"></canvas>
                         </div>
                     </div>
+                </div>
+                <?php else: ?>
+                <div class="message">
+                    <p>No performance data is available for this team. Add swim times for team members to see performance visualizations.</p>
                 </div>
                 <?php endif; ?>
                 
