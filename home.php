@@ -37,7 +37,6 @@ include 'includes/sidebar.php';
                     
                     <!-- Keep existing links for backward compatibility -->
                     <a href="operations.php?action=insert&entity=swimmer">Add Swimmer</a>
-                    <a href="operations.php?action=search&entity=swimmer">Search Swimmers</a>
                     <a href="operations.php?action=delete&entity=swimmer">Delete Swimmer</a>
                     <a href="operations.php?action=insert&entity=swim">Add Swim Times</a>
                     <a href="operations.php?action=search&entity=admin">Search Admin</a>
