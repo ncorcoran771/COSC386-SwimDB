@@ -1,4 +1,0 @@
-indexp, login, register, reset_password are basically just php templates. Need confirmation on DB and fill in for the DB connection.
-
-https://lamp.salisbury.edu/~eknights1/indexp.php
-Can now access homepagewithout sign-in 
