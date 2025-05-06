@@ -31,28 +31,28 @@ include 'includes/sidebar.php';
             // Handle delete action if requested
             if ($action === 'delete' && isset($_POST['swimmerID'])) {
                 $swimmerID = sanitize($_POST['swimmerID']);
-                
+
                 // First check if swimmer has any swim records
                 $stmt = $conn->prepare("SELECT COUNT(*) as count FROM Swim WHERE swimmerID = ?");
                 $stmt->bind_param('i', $swimmerID);
                 $stmt->execute();
                 $result = $stmt->get_result();
                 $row = $result->fetch_assoc();
-                
+
                 if ($row['count'] > 0) {
                     // Swimmer has swim records
                     $deleteRecords = isset($_POST['deleteRecords']) && $_POST['deleteRecords'] === 'yes';
-                    
+
                     if ($deleteRecords) {
                         // Delete swim records first
                         $stmt = $conn->prepare("DELETE FROM Swim WHERE swimmerID = ?");
                         $stmt->bind_param('i', $swimmerID);
-                        
+
                         if ($stmt->execute()) {
                             // Now delete the swimmer
                             $stmt = $conn->prepare("DELETE FROM Swimmer WHERE swimmerID = ?");
                             $stmt->bind_param('i', $swimmerID);
-                            
+
                             if ($stmt->execute()) {
                                 echo showMessage("Swimmer and associated swim records deleted successfully");
                             } else {
@@ -77,7 +77,7 @@ include 'includes/sidebar.php';
                     // Swimmer has no swim records, proceed with deletion
                     $stmt = $conn->prepare("DELETE FROM Swimmer WHERE swimmerID = ?");
                     $stmt->bind_param('i', $swimmerID);
-                    
+
                     if ($stmt->execute()) {
                         echo showMessage("Swimmer deleted successfully");
                     } else {
@@ -93,22 +93,22 @@ include 'includes/sidebar.php';
                 $gender = sanitize($_POST['gender']);
                 $hometown = sanitize($_POST['hometown']);
                 $team = sanitize($_POST['team']);
-                
+
                 // First, check if the team exists
                 $stmt = $conn->prepare("SELECT teamName FROM Team WHERE teamName = ?");
                 $stmt->bind_param('s', $team);
                 $stmt->execute();
                 $result = $stmt->get_result();
-                
+
                 // If team doesn't exist, show a warning
                 if ($result->num_rows === 0) {
                     echo showMessage("Warning: Team '$team' does not exist in the Team table. Swimmer will be added, but may not appear in team views.", true);
                     // Note: In a more robust implementation, we would offer to create the team here
                 }
-                
+
                 $stmt = $conn->prepare("INSERT INTO Swimmer (name, powerIndex, gender, hometown, team) VALUES (?, ?, ?, ?, ?)");
                 $stmt->bind_param('sisss', $name, $powerIndex, $gender, $hometown, $team);
-                
+
                 if ($stmt->execute()) {
                     $swimmerID = $conn->insert_id;
                     echo showMessage("Swimmer added successfully. New Swimmer ID: $swimmerID");
@@ -121,7 +121,7 @@ include 'includes/sidebar.php';
             <!-- Add Swimmer Button and Toggle Form -->
             <div style="margin: 20px 0;">
                 <button onclick="toggleAddForm()" class="button">Add New Swimmer</button>
-                
+
                 <div id="addSwimmerForm" style="display: none; margin-top: 15px; background: #f5f5f5; padding: 15px; border-radius: 5px;">
                     <h3>Add Swimmer</h3>
                     <form method="post" action="?action=add">
@@ -151,7 +151,7 @@ include 'includes/sidebar.php';
                                 // Get existing teams
                                 $result = $conn->query("SELECT teamName FROM Team ORDER BY teamName");
                                 while($row = $result->fetch_assoc()) {
-                                    echo "<option value='" . htmlspecialchars($row['teamName']) . "'>" . 
+                                    echo "<option value='" . htmlspecialchars($row['teamName']) . "'>" .
                                         htmlspecialchars($row['teamName']) . "</option>";
                                 }
                                 ?>
@@ -197,37 +197,37 @@ include 'includes/sidebar.php';
             <!-- Swimmers Table -->
             <div class="table-container">
                 <h3>Swimmers</h3>
-                
+
                 <?php
                 // Build search query based on filters
                 $whereConditions = [];
                 $params = [];
                 $types = '';
-                
+
                 if (!empty($_GET['searchName'])) {
                     $whereConditions[] = "name LIKE ?";
                     $params[] = '%' . $_GET['searchName'] . '%';
                     $types .= 's';
                 }
-                
+
                 if (!empty($_GET['searchTeam'])) {
                     $whereConditions[] = "team LIKE ?";
                     $params[] = '%' . $_GET['searchTeam'] . '%';
                     $types .= 's';
                 }
-                
+
                 if (!empty($_GET['searchHometown'])) {
                     $whereConditions[] = "hometown LIKE ?";
                     $params[] = '%' . $_GET['searchHometown'] . '%';
                     $types .= 's';
                 }
-                
+
                 $query = "SELECT s.*, (SELECT COUNT(*) FROM Swim sw WHERE sw.swimmerID = s.swimmerID) as swimCount FROM Swimmer s";
                 if (!empty($whereConditions)) {
                     $query .= " WHERE " . implode(" AND ", $whereConditions);
                 }
                 $query .= " ORDER BY name";
-                
+
                 // Execute query
                 if (empty($params)) {
                     $result = $conn->query($query);
@@ -237,7 +237,7 @@ include 'includes/sidebar.php';
                     $stmt->execute();
                     $result = $stmt->get_result();
                 }
-                
+
                 if ($result && $result->num_rows > 0) {
                     echo "<table>";
                     echo "<tr>
@@ -250,7 +250,7 @@ include 'includes/sidebar.php';
                             <th>Swim Records</th>
                             <th>Actions</th>
                         </tr>";
-                        
+
                     while ($row = $result->fetch_assoc()) {
                         echo "<tr>";
                         echo "<td>" . htmlspecialchars($row['swimmerID']) . "</td>";
@@ -267,7 +267,7 @@ include 'includes/sidebar.php';
                             </td>";
                         echo "</tr>";
                     }
-                    
+
                     echo "</table>";
                 } else {
                     echo "<p>No swimmers found matching your criteria</p>";
@@ -292,7 +292,7 @@ include 'includes/sidebar.php';
                 const teamSelect = document.querySelector('select[name="team"]');
                 const otherSection = document.getElementById('otherTeamSection');
                 const otherInput = document.getElementById('otherTeam');
-                
+
                 if (teamSelect && otherSection && otherInput) {
                     teamSelect.addEventListener('change', function() {
                         if (this.value === 'other') {
@@ -304,26 +304,26 @@ include 'includes/sidebar.php';
                         }
                     });
                 }
-                
+
                 // Handle form submission to use custom team if specified
                 const form = document.querySelector('form[action="?action=add"]');
                 if (form) {
                     form.addEventListener('submit', function(e) {
                         const teamSelect = this.querySelector('select[name="team"]');
                         const otherInput = this.querySelector('input[name="otherTeam"]');
-                        
+
                         if (teamSelect.value === 'other' && otherInput && otherInput.value.trim()) {
                             e.preventDefault(); // Prevent normal submission
-                            
+
                             // Create hidden input with the custom team value
                             const hiddenTeam = document.createElement('input');
                             hiddenTeam.type = 'hidden';
                             hiddenTeam.name = 'team';
                             hiddenTeam.value = otherInput.value.trim();
-                            
+
                             // Replace the select element with this hidden input
                             teamSelect.parentNode.replaceChild(hiddenTeam, teamSelect);
-                            
+
                             // Submit the form
                             this.submit();
                         }
@@ -338,14 +338,14 @@ include 'includes/sidebar.php';
                         const form = document.getElementById('deleteForm');
                         const idField = document.getElementById('deleteSwimmerID');
                         idField.value = id;
-                        
+
                         // Add deleteRecords field
                         const deleteRecordsField = document.createElement('input');
                         deleteRecordsField.type = 'hidden';
                         deleteRecordsField.name = 'deleteRecords';
                         deleteRecordsField.value = 'yes';
                         form.appendChild(deleteRecordsField);
-                        
+
                         form.submit();
                     }
                 } else {
