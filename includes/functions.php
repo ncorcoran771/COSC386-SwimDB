@@ -30,12 +30,38 @@ function redirect($url, $message = '') {
 function timeToSeconds($timeStr) {
     if (empty($timeStr)) return 0;
     $parts = explode(':', $timeStr);
-    
-    // Explicitly cast parts to appropriate types
-    $minutes = (int)$parts[0];
-    $seconds = (float)$parts[1];
-    $milliseconds = (float)$parts[2] / 100;
-    
+    //check to see if we include minutes or not
+    //if we do not include minutes, then ignore and process seconds and milliseconds
+    //if we do include minutes, then process all three
+
+    //no minutes
+    //:xx:xx results in parts 0 being null
+    //handle if parts[0] is null
+
+    if (count($parts) == 2) {
+        $minutes = 0;
+        $seconds = (float)$parts[0];
+        if(strlen($parts[1]) == 1) {
+            $parts[2] = $parts[2] . '0';
+        }
+        $milliseconds = (float)$parts[1] / 100;
+    }
+    //with minutes
+    else if (count($parts) == 3) {
+        //normalize minutes digits
+        if(strlen($parts[0]) == 1) {
+            $parts[0] = '0' . $parts[0];
+        }
+        $minutes = (int)$parts[0];
+        $seconds = (float)$parts[1];
+        if(strlen($parts[2]) == 1) {
+            $parts[2] = $parts[2] . '0';
+        }
+        $milliseconds = (float)$parts[2] / 100;
+    } else {
+        echo "<script>alert('Please enter a valid time format');</script>"; // Invalid format
+    }
+  
     return ($minutes * 60) + $seconds + $milliseconds;
 }
 
@@ -51,28 +77,6 @@ function secondsToTime($seconds) {
     return sprintf("%d:%02d:%02d", $minutes, floor($secs), $ms);
 }
 
-function timeToSeconds($timeStr) {
-    if (empty($timeStr)) {
-        return 0.0; // Or null, depending on how you want to handle empty input
-    }
-    $parts = explode(':', $timeStr);
-    // Expecting 'mm:ss:ms' -> 3 parts
-    if (count($parts) !== 3) {
-        // Invalid format
-        return false; // Indicate an invalid conversion
-    }
-    $minutes = (int)$parts[0];
-    $seconds = (int)$parts[1];
-    // Assuming milliseconds are stored as hundredths (e.g., 45 means 0.45 seconds)
-    $milliseconds = (int)$parts[2];
-
-    // Basic validation: seconds and milliseconds parts should be 0-99
-    if ($seconds < 0 || $seconds > 59 || $milliseconds < 0 || $milliseconds > 99) {
-        return false; // Indicate invalid values
-    }
-
-    return ($minutes * 60) + $seconds + ($milliseconds / 100.0);
-}
 function formatTime($totalSeconds) {
     // Ensure input is numeric and non-negative
     if (!is_numeric($totalSeconds) || $totalSeconds < 0) {
