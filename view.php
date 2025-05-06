@@ -84,9 +84,9 @@ include 'includes/sidebar.php';
 
                             // --- Build the SQL Query using prepared statements ---
                             $query = "SELECT s.name, s.gender, s.hometown, s.team, s.powerIndex, sw.time
-                                      FROM Swimmer s
-                                      JOIN Swim sw ON s.swimmerID = sw.swimmerID
-                                      WHERE 1=1"; // Start with a true condition to easily append AND clauses
+                                            FROM Swimmer s
+                                            JOIN Swim sw ON s.swimmerID = sw.swimmerID
+                                            WHERE 1=1"; // Start with a true condition to easily append AND clauses
 
                             $params = [];
                             $types = "";
@@ -215,46 +215,46 @@ include 'includes/sidebar.php';
                                 <?php
                                 $freestyleEvents = ["50y Freestyle", "100y Freestyle", "200y Freestyle", "500y Freestyle", "1000y Freestyle", "1650y Freestyle"];
                                 foreach ($freestyleEvents as $e) {
-                                    $selected = (isset($submittedData['event']) && $submittedData['event'] === $e) ? 'selected' : '';
-                                    echo "<option value=\"$e\" $selected>$e</option>";
+                                     $selected = (isset($submittedData['event']) && $submittedData['event'] === $e) ? 'selected' : '';
+                                     echo "<option value=\"$e\" $selected>$e</option>";
                                 }
                                 ?>
                             </optgroup>
                             <optgroup label="Backstroke">
                                  <?php
-                                $backstrokeEvents = ["50y Backstroke", "100y Backstroke", "200y Backstroke"];
-                                foreach ($backstrokeEvents as $e) {
-                                    $selected = (isset($submittedData['event']) && $submittedData['event'] === $e) ? 'selected' : '';
-                                    echo "<option value=\"$e\" $selected>$e</option>";
-                                }
-                                ?>
+                                 $backstrokeEvents = ["50y Backstroke", "100y Backstroke", "200y Backstroke"];
+                                 foreach ($backstrokeEvents as $e) {
+                                      $selected = (isset($submittedData['event']) && $submittedData['event'] === $e) ? 'selected' : '';
+                                      echo "<option value=\"$e\" $selected>$e</option>";
+                                 }
+                                 ?>
                             </optgroup>
                             <optgroup label="Butterfly">
                                  <?php
-                                $butterflyEvents = ["50y Butterfly", "100y Butterfly", "200y Butterfly"];
-                                foreach ($butterflyEvents as $e) {
-                                    $selected = (isset($submittedData['event']) && $submittedData['event'] === $e) ? 'selected' : '';
-                                    echo "<option value=\"$e\" $selected>$e</option>";
-                                }
-                                ?>
+                                 $butterflyEvents = ["50y Butterfly", "100y Butterfly", "200y Butterfly"];
+                                 foreach ($butterflyEvents as $e) {
+                                      $selected = (isset($submittedData['event']) && $submittedData['event'] === $e) ? 'selected' : '';
+                                      echo "<option value=\"$e\" $selected>$e</option>";
+                                 }
+                                 ?>
                             </optgroup>
                             <optgroup label="Breaststroke">
                                  <?php
-                                $breaststrokeEvents = ["50y Breaststroke", "100y Breaststroke", "200y Breaststroke"];
-                                foreach ($breaststrokeEvents as $e) {
-                                    $selected = (isset($submittedData['event']) && $submittedData['event'] === $e) ? 'selected' : '';
-                                    echo "<option value=\"$e\" $selected>$e</option>";
-                                }
-                                ?>
+                                 $breaststrokeEvents = ["50y Breaststroke", "100y Breaststroke", "200y Breaststroke"];
+                                 foreach ($breaststrokeEvents as $e) {
+                                      $selected = (isset($submittedData['event']) && $submittedData['event'] === $e) ? 'selected' : '';
+                                      echo "<option value=\"$e\" $selected>$e</option>";
+                                 }
+                                 ?>
                             </optgroup>
                             <optgroup label="IM">
                                  <?php
-                                $imEvents = ["100y IM", "200y IM", "400y IM"];
-                                foreach ($imEvents as $e) {
-                                    $selected = (isset($submittedData['event']) && $submittedData['event'] === $e) ? 'selected' : '';
-                                    echo "<option value=\"$e\" $selected>$e</option>";
-                                }
-                                ?>
+                                 $imEvents = ["100y IM", "200y IM", "400y IM"];
+                                 foreach ($imEvents as $e) {
+                                      $selected = (isset($submittedData['event']) && $submittedData['event'] === $e) ? 'selected' : '';
+                                      echo "<option value=\"$e\" $selected>$e</option>";
+                                 }
+                                 ?>
                             </optgroup>
                         </select>
                     </div>
@@ -262,11 +262,9 @@ include 'includes/sidebar.php';
                     <div id="timeSection" style="display: none;">
                         <label for="minTime">Minimum Time (mm:ss:ms):</label>
                         <input type="text" id="minTime" name="minTime" class="time-input" placeholder="e.g., 01:23:45"  value="<?= htmlspecialchars($submittedData['minTime'] ?? '') ?>">
-                        <!-- <span id="minTimeError" class="error"></span><br> -->
-                        <label for="maxTime">Maximum Time (mm:ss:ms):</label>
+                         <label for="maxTime">Maximum Time (mm:ss:ms):</label>
                         <input type="text" id="maxTime" name="maxTime" class="time-input" placeholder="e.g., 01:23:45"  value="<?= htmlspecialchars($submittedData['maxTime'] ?? '') ?>">
-                        <!-- <span id="maxTimeError" class="error"></span><br> -->
-                        <input type="submit" value="Search">
+                         <input type="submit" value="Search">
                     </div>
                 </form>
 
@@ -274,14 +272,14 @@ include 'includes/sidebar.php';
                     <h2>Results</h2>
                     <table>
                         <thead>
-                              <tr>
+                             <tr>
                                 <th>Name</th>
                                 <th>Gender</th>
                                 <th>Hometown</th>
                                 <th>Team</th>
                                 <th>Power Index</th>
                                 <th>Time</th>
-                              </tr>
+                             </tr>
                         </thead>
                         <tbody>
                             <?php foreach ($queryResult as $row): ?>
@@ -298,7 +296,7 @@ include 'includes/sidebar.php';
                         </tbody>
                     </table>
                 <?php elseif ($submittedData !== null && empty($error)): // Only show "no results" if a search was performed and no PHP error occurred ?>
-                      <p>No swimmers found matching your criteria.</p>
+                     <p>No swimmers found matching your criteria.</p>
                 <?php endif; ?>
 
             </div>
@@ -341,23 +339,26 @@ include 'includes/sidebar.php';
                 function validateTimeFormat(input, errorSpan) {
                     const regex = /^\d+:[0-5]\d:[0-9]\d$/;
                     const isValid = regex.test(input.value);
-                    errorSpan.textContent = isValid ? '' : 'Please use mm:ss:ms format (e.g., 01:23:45) with seconds 00-59 and ms 00-99.';
+                    // Removed error span elements from HTML as per original code comments
+                    // errorSpan.textContent = isValid ? '' : 'Please use mm:ss:ms format (e.g., 01:23:45) with seconds 00-59 and ms 00-99.';
                     return isValid;
                 }
 
                 const minTimeInput = document.getElementById('minTime');
-                const minTimeErrorSpan = document.getElementById('minTimeError');
-                if (minTimeInput && minTimeErrorSpan) {
+                // const minTimeErrorSpan = document.getElementById('minTimeError'); // Removed
+                if (minTimeInput /* && minTimeErrorSpan */) { // Adjusted check
                      minTimeInput.addEventListener('input', function() {
-                         validateTimeFormat(this, minTimeErrorSpan);
+                         // validateTimeFormat(this, minTimeErrorSpan); // Adjusted call
+                         validateTimeFormat(this, { textContent: function(msg){ console.log('Time validation error placeholder:', msg); } }); // Placeholder for console logging
                      });
                 }
 
                 const maxTimeInput = document.getElementById('maxTime');
-                const maxTimeErrorSpan = document.getElementById('maxTimeError');
-                 if (maxTimeInput && maxTimeErrorSpan) {
+                // const maxTimeErrorSpan = document.getElementById('maxTimeError'); // Removed
+                 if (maxTimeInput /* && maxTimeErrorSpan */) { // Adjusted check
                     maxTimeInput.addEventListener('input', function() {
-                         validateTimeFormat(this, maxTimeErrorSpan);
+                         // validateTimeFormat(this, maxTimeErrorSpan); // Adjusted call
+                         validateTimeFormat(this, { textContent: function(msg){ console.log('Time validation error placeholder:', msg); } }); // Placeholder for console logging
                      });
                  }
 
@@ -385,9 +386,12 @@ include 'includes/sidebar.php';
             ];
             $dbTable = $tableMap[$entity] ?? null; // Set $dbTable based on entity
 
-            if ($dbTable !== null) {
-                 // Build query based on entity
-                 if ($dbTable === 'Swim') {
+            if ($dbTable === null) {
+                 echo showMessage("Invalid table specified", true);
+                 // Don't include footer here, let the main footer handle it
+            } else {
+                // Build query based on entity
+                if ($dbTable === 'Swim') {
                     $query = "SELECT s.eventName, s.meetName, s.meetDate, s.swimmerID,
                                 sw.name AS swimmerName, s.time
                                 FROM Swim s
@@ -511,15 +515,11 @@ include 'includes/sidebar.php';
                         }
                          if (!empty($_POST['time'])) {
                             // Assuming time in DB is stored as seconds (float)
-                            $searchTimeSeconds = timeToSeconds($_POST['time']);
-                            if ($searchTimeSeconds !== false) {
-                                 $query .= " AND s.time LIKE ?";
-                                 $params[] = '%' . $_POST['time'] . '%'; // Searching by string representation
-                                 $types .= 's';
-                            } else {
-                                echo showMessage("Invalid time format entered for search.", true);
-                            }
-                        }
+                            // For generic search, allow LIKE search on the string representation of time
+                            $query .= " AND s.time LIKE ?";
+                            $params[] = '%' . $_POST['time'] . '%'; // Searching by string representation
+                            $types .= 's';
+                         }
                     } else if ($dbTable === 'Team') {
                         if (!empty($_POST['teamName'])) {
                             $query .= " AND teamName LIKE ?";
@@ -607,7 +607,7 @@ include 'includes/sidebar.php';
                 } else {
                     echo showMessage("No data found");
                 }
-            } // closes if ($dbTable !== null) for generic viewer
+            } // closes else for if ($dbTable === null)
         } // closes else for if ($entity === 'find_recruit')
         ?>
 
