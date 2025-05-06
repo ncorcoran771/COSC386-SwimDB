@@ -13,5 +13,6 @@ $entity = isset($_GET['entity']) ? $_GET['entity'] : '';
         <a <?= ($currentPage == 'view.php' && $entity == 'swims') ? 'class="active"' : '' ?> href="view.php?entity=swims">View Swim Records</a>
         <a <?= ($currentPage == 'view.php' && $entity == 'teams') ? 'class="active"' : '' ?> href="view.php?entity=teams">View Teams</a>
         <a <?= ($currentPage == 'view.php' && $entity == 'swimmers') ? 'class="active"' : '' ?> href="view.php?entity=swimmers">View Swimmers</a>
+        <a <?= ($currentPage == 'view.php' && $entity == 'find_recruit') ? 'class="active"' : '' ?> href="view.php?entity=find_recruit">Find Recruit</a>
     </div>
 </body>
