@@ -93,32 +93,39 @@ include 'includes/sidebar.php';
     }
     
     .quick-link-box {
-        background-color: #f5f5f5;
+        background-color: white; /* Pure white background */
         border-radius: 8px;
         padding: 15px;
         text-decoration: none;
         color: inherit;
-        transition: transform 0.2s, box-shadow 0.2s;
-        border: 1px solid #ddd;
+        transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+        border: 3px solid #00796b; /* Thicker teal border */
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2); /* Stronger shadow */
     }
     
     .quick-link-box:hover {
         transform: translateY(-5px);
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.2); /* Even stronger shadow on hover */
         text-decoration: none;
-        background-color: #e0f7fa;
+        background-color: #e0f7fa; /* Light teal background on hover */
+        border-color: #004d40; /* Darker teal border on hover */
     }
     
     .quick-link-box h3 {
-        color: #00796b;
+        color: #004d40; /* Very dark teal heading for maximum contrast */
         margin-top: 0;
         margin-bottom: 10px;
+        font-weight: 700; /* Bold heading */
+        font-size: 1.3em; /* Larger heading */
+        text-shadow: 0px 0px 1px rgba(0,0,0,0.1); /* Subtle text shadow for definition */
     }
     
     .quick-link-box p {
         margin: 0;
-        font-size: 0.9em;
-        color: #555;
+        font-size: 1em; /* Standard size */
+        color: #000000; /* Pure black text for maximum contrast */
+        line-height: 1.5; /* Improved line height */
+        font-weight: 500; /* Medium weight for better visibility */
     }
     </style>
 </body>
