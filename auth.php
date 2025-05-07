@@ -18,9 +18,9 @@ switch ($action) {
                 if (loginUser($userID, $password, $userType))
                     redirect('home.php');
                 else
-                    redirect('auth.php?action=login', 'Invalid credentials');
+                    redirect('index.php?action=login', 'Invalid credentials');
             else
-                redirect('auth.php?action=login', 'ID must be an Integer');
+                redirect('index.php?action=login', 'ID must be an Integer');
         }
         break;
         
