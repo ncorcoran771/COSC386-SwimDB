@@ -14,7 +14,7 @@ switch ($action) {
             $password = $_POST['plainPassword'] ?? '';
             $userType = isset($_POST['swimmerLog']) ? 'swimmer' : (isset($_POST['adminLog']) ? 'admin' : 'guest');
 
-            if(filter_var($variable, FILTER_VALIDATE_INT) === false )// double checking that the ID is a valid integer
+            if(filter_var($userID, FILTER_VALIDATE_INT))// double checking that the ID is a valid integer
                 if (loginUser($userID, $password, $userType))
                     redirect('home.php');
                 else
@@ -57,7 +57,7 @@ switch ($action) {
             if (empty($userID) || empty($password) || empty($role)) {
                 redirect('auth.php?action=register', 'All fields are required');
             }
-            if (!(filter_var($variable, FILTER_VALIDATE_INT) === false ))
+            if (filter_var($userID, FILTER_VALIDATE_INT) === false)
                 redirect('auth.php?action=register', 'ID must be an integer');
 
             $hashedPassword = hash('sha256', $password);
