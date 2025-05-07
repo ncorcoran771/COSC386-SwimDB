@@ -73,6 +73,9 @@ include 'includes/sidebar.php';
             <?php if (isLoggedIn()): ?>
                 <a href="auth.php?action=logout">Log Out</a>
             <?php endif; ?>
+            <?php if (!(isLoggedIn())): ?>
+                <a href="index.php">Login</a>
+            <?php endif; ?>
             <?php include 'includes/footer.php'; ?>
         </div>
     </div>
