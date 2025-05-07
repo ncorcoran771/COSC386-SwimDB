@@ -11,14 +11,16 @@ switch ($action) {
         // Process login
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $userID = sanitize($_POST['userID'] ?? '');
-            $password = $_POST['password'] ?? '';
+            $password = $_POST['plainPassword'] ?? '';
             $userType = isset($_POST['swimmerLog']) ? 'swimmer' : (isset($_POST['adminLog']) ? 'admin' : 'guest');
-            
-            if (loginUser($userID, $password, $userType)) {
-                redirect('home.php');
-            } else {
-                redirect('index.php', 'Invalid credentials');
-            }
+
+            if(filter_var($variable, FILTER_VALIDATE_INT) === false )// double checking that the ID is a valid integer
+                if (loginUser($userID, $password, $userType))
+                    redirect('home.php');
+                else
+                    redirect('auth.php?action=login', 'Invalid credentials');
+            else
+                redirect('auth.php?action=login', 'ID must be an Integer');
         }
         break;
         
@@ -49,13 +51,15 @@ switch ($action) {
         // Process registration (from register.php)
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $userID = sanitize($_POST['userID'] ?? '');
-            $password = $_POST['password'] ?? '';
+            $password = $_POST['plainPassword'] ?? '';
             $role = strtolower($_POST['role'] ?? '');
             
             if (empty($userID) || empty($password) || empty($role)) {
                 redirect('auth.php?action=register', 'All fields are required');
             }
-            
+            if (!(filter_var($variable, FILTER_VALIDATE_INT) === false ))
+                redirect('auth.php?action=register', 'ID must be an integer');
+
             $hashedPassword = hash('sha256', $password);
             
             if ($role === 'swimmer') {
@@ -68,7 +72,7 @@ switch ($action) {
             
             // Check if exists
             $stmt = $conn->prepare("SELECT * FROM $table WHERE $idField = ?");
-            $stmt->bind_param('s', $userID);
+            $stmt->bind_param('i', $userID);
             $stmt->execute();
             
             if ($stmt->get_result()->num_rows > 0) {

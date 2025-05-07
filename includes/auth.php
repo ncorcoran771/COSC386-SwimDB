@@ -25,24 +25,25 @@ function getCurrentUser() {
 
 // Handle login (temporary development version like in login.php)
 function loginUser($userID, $password, $userType) {
-    // TEMPORARY LOGIN (from login.php)
-    $_SESSION['loggedIN'] = true;
-    $_SESSION['userData'] = [
-        'id' => $userID ?: 'guest',
-        'type' => $userType,
-        'name' => 'Guest User'
-    ];
-    return true;
-    
-    /* COMMENTED OUT REAL LOGIN FOR FUTURE IMPLEMENTATION
-    global $conn;
+    if($userType === 'swimmer'){ 
+        // currently if you're ID'd as a swimmer then you don't have any perms that a guest wouldn't have so we'll keep it at that
+        $_SESSION['loggedIN'] = true;
+        $_SESSION['userData'] = [
+            'id' => $userID ?: 'guest',
+            'type' => $userType,
+            'name' => 'Guest User'
+        ];
+        return true;
+    }
+    //admin login:
+    global $conn; // need to grab connection from global as we're a function
     $hashedPassword = hash('sha256', $password);
     
-    $table = ($userType === 'swimmer') ? 'Swimmer' : 'Admin';
+    $table = ($userType === 'swimmer') ? 'Swimmer' : 'Admin';   // redundant but I'll keep this here for future implementations
     $idField = ($userType === 'swimmer') ? 'swimmerID' : 'adminID';
     
     $stmt = $conn->prepare("SELECT * FROM $table WHERE $idField = ? AND password = ?");
-    $stmt->bind_param('ss', $userID, $hashedPassword);
+    $stmt->bind_param('is', $userID, $hashedPassword);
     $stmt->execute();
     $result = $stmt->get_result();
     
@@ -56,6 +57,5 @@ function loginUser($userID, $password, $userType) {
         return true;
     }
     return false;
-    */
 }
 ?>
