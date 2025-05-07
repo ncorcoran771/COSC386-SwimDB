@@ -14,7 +14,8 @@ switch ($action) {
             $password = $_POST['plainPassword'] ?? '';
             $userType = isset($_POST['swimmerLog']) ? 'swimmer' : (isset($_POST['adminLog']) ? 'admin' : 'guest');
 
-            if(filter_var($userID, FILTER_VALIDATE_INT))// double checking that the ID is a valid integer
+            // double checking that the ID is a valid integer, don't care either way if we're auto-passing them for not being an admin
+            if(filter_var($userID, FILTER_VALIDATE_INT) || $userType === 'swimmer')
                 if (loginUser($userID, $password, $userType))
                     redirect('home.php');
                 else
