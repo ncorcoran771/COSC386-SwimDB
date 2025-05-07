@@ -315,8 +315,10 @@ include 'includes/header.php';
                     }
                     echo "</div>";
                     
-
+                    // Get parameters from URL
                     $swimmerID = isset($_GET['swimmer']) ? intval($_GET['swimmer']) : 0;
+                    $meetName = isset($_GET['meet']) ? sanitize($_GET['meet']) : '';
+                    $meetDate = isset($_GET['date']) ? sanitize($_GET['date']) : '';
                     
                     // If swimmerID is provided, pre-select that swimmer
                     if ($swimmerID > 0) {
@@ -475,7 +477,12 @@ include 'includes/header.php';
                             
                             <div>
                                 <label for="meetName">Meet Name:</label>
-                                <input type="text" name="meetName" required>
+                                <?php if (!empty($meetName)): ?>
+                                    <input type="hidden" name="meetName" value="<?= htmlspecialchars($meetName) ?>">
+                                    <p><strong><?= htmlspecialchars($meetName) ?></strong></p>
+                                <?php else: ?>
+                                    <input type="text" name="meetName" required>
+                                <?php endif; ?>
                             </div>
                             
                             <div>
@@ -485,7 +492,12 @@ include 'includes/header.php';
                             
                             <div>
                                 <label for="meetDate">Meet Date:</label>
-                                <input type="date" name="meetDate" required>
+                                <?php if (!empty($meetDate)): ?>
+                                    <input type="hidden" name="meetDate" value="<?= htmlspecialchars($meetDate) ?>">
+                                    <p><strong><?= htmlspecialchars($meetDate) ?></strong></p>
+                                <?php else: ?>
+                                    <input type="date" name="meetDate" required>
+                                <?php endif; ?>
                             </div>
                             
                             <button type="submit">Add Swim Time</button>

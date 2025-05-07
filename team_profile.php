@@ -4,7 +4,7 @@ require_once 'includes/db.php';
 require_once 'includes/functions.php';
 require_once 'includes/auth.php';
 
-// Add debugging
+ /*Add debugging
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -12,16 +12,16 @@ error_reporting(E_ALL);
 // Basic execution test
 echo "<div style='background:#f8d7da; border:1px solid #f5c6cb; padding:10px; margin:10px 0;'>";
 echo "<h3>Basic Debug Information</h3>";
-
+*/
 // Get team name from URL parameter
 $teamName = isset($_GET['team']) ? sanitize($_GET['team']) : '';
-echo "<p>Team name parameter: '" . htmlspecialchars($teamName) . "'</p>";
+//echo "<p>Team name parameter: '" . htmlspecialchars($teamName) . "'</p>";
 
 // Check database connection
-echo "<p>Database connection: " . ($conn ? "Working" : "FAILED") . "</p>";
+//echo "<p>Database connection: " . ($conn ? "Working" : "FAILED") . "</p>";
 
 // Test if team exists
-if (!empty($teamName)) {
+/*if (!empty($teamName)) {
     $checkStmt = $conn->prepare("SELECT COUNT(*) as count FROM Team WHERE teamName = ?");
     $checkStmt->bind_param('s', $teamName);
     $checkStmt->execute();
@@ -31,7 +31,7 @@ if (!empty($teamName)) {
 }
 
 echo "</div>";
-
+*/
 // Redirect if no team specified
 if (empty($teamName)) {
     redirect('view.php?entity=teams', 'No team specified');
@@ -101,7 +101,7 @@ include 'includes/sidebar.php';
                     $eventBestTimes[] = $perfRow['bestTime'];
                 }
                 
-                // Add detailed diagnostic information
+                /* Add detailed diagnostic information
                 echo "<div style='background:#f8f8f8; border:1px solid #ddd; padding:10px; margin:10px 0;'>";
                 echo "<h3>Diagnostic Information</h3>";
                 echo "<p>Team data retrieved: " . ($row ? "Yes" : "No") . "</p>";
@@ -118,7 +118,7 @@ include 'includes/sidebar.php';
                     echo "<p>No performance data available. Check if swimmers have swim records.</p>";
                 }
                 echo "</div>";
-                
+                */
                 // Display team header info
                 ?>
                 <div class="profile-header">

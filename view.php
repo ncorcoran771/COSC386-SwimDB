@@ -561,48 +561,48 @@ include 'includes/sidebar.php';
                 $result = $stmt->get_result();
 
                 if ($result && $result->num_rows > 0) {
-
                     echo "<table>";
-
+                    
                     // Get column names from the first row
                     $firstRow = $result->fetch_assoc();
                     echo "<tr>";
                     foreach (array_keys($firstRow) as $column) {
                         echo "<th>" . htmlspecialchars($column) . "</th>";
                     }
-
-                    // Add Actions column for Swimmers and Teams
-                    if ($dbTable === 'Swimmer' || $dbTable === 'Team') {
+                    
+                    // Add Actions column for Meet, Swimmers and Teams
+                    if ($dbTable === 'Swimmer' || $dbTable === 'Team' || $dbTable === 'Meet') {
                         echo "<th>Actions</th>";
                     }
                     echo "</tr>";
-
+                    
                     // Reset result pointer
                     $result->data_seek(0);
-
+                    
                     // Display data
                     while ($row = $result->fetch_assoc()) {
                         echo "<tr>";
                         foreach ($row as $column => $value) {
                             // Format time for better readability if this is the time column and it's the Swim table
-                            // Use the secondsToTime function from includes/functions.php
                             if ($column === 'time' && $dbTable === 'Swim') {
                                 echo "<td>" . secondsToTime($value) . "</td>";
                             } else {
                                 echo "<td>" . htmlspecialchars($value) . "</td>";
                             }
                         }
-
+                        
                         // Add links to profiles
                         if ($dbTable === 'Swimmer') {
                             echo "<td><a href='swimmer_profile.php?id=" . $row['swimmerID'] . "' class='button'>View Profile</a></td>";
                         } elseif ($dbTable === 'Team') {
                             echo "<td><a href='team_profile.php?team=" . urlencode($row['teamName']) . "' class='button'>View Profile</a></td>";
+                        } elseif ($dbTable === 'Meet') {
+                            echo "<td><a href='meet_profile.php?name=" . urlencode($row['meetName']) . "&date=" . urlencode($row['date']) . "' class='button'>View Profile</a></td>";
                         }
-
+                        
                         echo "</tr>";
                     }
-
+                    
                     echo "</table>";
                 } else {
                     echo showMessage("No data found");

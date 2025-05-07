@@ -178,7 +178,11 @@ include 'includes/sidebar.php';
                         <tr>
                             <td><?= htmlspecialchars($record['eventName']) ?></td>
                             <td><?= secondsToTime($record['time']) ?></td>
-                            <td><?= htmlspecialchars($record['meetName']) ?></td>
+                            <td>
+                                <a href="meet_profile.php?name=<?= urlencode($record['meetName']) ?>&date=<?= urlencode($record['meetDate']) ?>">
+                                    <?= htmlspecialchars($record['meetName']) ?>
+                                </a>
+                            </td>
                             <td><?= htmlspecialchars($record['meetLocation']) ?></td>
                             <td><?= htmlspecialchars($record['meetDate']) ?></td>
                         </tr>

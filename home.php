@@ -28,6 +28,28 @@ include 'includes/sidebar.php';
                 progress, compare times, and dive deep into swimming statistics with 
                 our intuitive, user-friendly platform.</p>
             
+            <div class="quick-links">
+                <h2>Quick Links</h2>
+                <div class="link-grid">
+                    <a href="view.php?entity=swimmers" class="quick-link-box">
+                        <h3>Swimmers</h3>
+                        <p>Browse all swimmers in the database</p>
+                    </a>
+                    <a href="view.php?entity=teams" class="quick-link-box">
+                        <h3>Teams</h3>
+                        <p>View team information and rosters</p>
+                    </a>
+                    <a href="event_records.php" class="quick-link-box">
+                        <h3>Event Records</h3>
+                        <p>See top performances for each event</p>
+                    </a>
+                    <a href="view.php?entity=find_recruit" class="quick-link-box">
+                        <h3>Find Recruits</h3>
+                        <p>Search for swimmers based on criteria</p>
+                    </a>
+                </div>
+            </div>
+            
             <?php if ($role === 'admin'): ?>
                 <h2>Administrator Tools</h2>
                 <div class="nav">
@@ -54,4 +76,46 @@ include 'includes/sidebar.php';
             <?php include 'includes/footer.php'; ?>
         </div>
     </div>
+
+    <style>
+    .quick-links {
+        margin: 30px 0;
+    }
+    
+    .link-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 20px;
+        margin-top: 15px;
+    }
+    
+    .quick-link-box {
+        background-color: #f5f5f5;
+        border-radius: 8px;
+        padding: 15px;
+        text-decoration: none;
+        color: inherit;
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: 1px solid #ddd;
+    }
+    
+    .quick-link-box:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        text-decoration: none;
+        background-color: #e0f7fa;
+    }
+    
+    .quick-link-box h3 {
+        color: #00796b;
+        margin-top: 0;
+        margin-bottom: 10px;
+    }
+    
+    .quick-link-box p {
+        margin: 0;
+        font-size: 0.9em;
+        color: #555;
+    }
+    </style>
 </body>
