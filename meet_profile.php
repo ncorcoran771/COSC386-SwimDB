@@ -226,7 +226,7 @@ include 'includes/sidebar.php';
                     <div class="visualization-container">
                         <?php if ($mostPopularEvent && !empty($timeDistribution)): ?>
                         <div class="chart-container">
-                            <h3>Time Distribution: <?= htmlspecialchars($mostPopularEvent) ?></h3>
+                            <h3>Distribution of Most Popular Event: <?= htmlspecialchars($mostPopularEvent) ?></h3>
                             <canvas id="timeDistributionChart"></canvas>
                         </div>
                         <?php endif; ?>
@@ -739,13 +739,23 @@ include 'includes/sidebar.php';
                             responsive: true,
                             scales: {
                                 x: {
-                                    stacked: true
+                                    stacked: true,
+                                    grid: {
+                                        display: false //no x axis grid needed here
+                                    }
                                 },
                                 y: {
                                     stacked: true,
                                     title: {
                                         display: true,
                                         text: 'Medal Count'
+                                    },
+                                    ticks: {
+                                        precision: 0,
+                                        stepSize: 1 //Only whole numbers
+                                    },
+                                    grid: {
+                                        display: false //no y axis grid lines
                                     }
                                 }
                             }
