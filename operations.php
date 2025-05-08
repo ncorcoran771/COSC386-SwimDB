@@ -39,37 +39,40 @@ include 'includes/header.php';
                 case 'admin:insert':
                     // Insert admin logic (from insert_admin.php)
                     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+                        if (empty($name) || empty($userID) || empty($password))
+                            echo showMessage('All fields are required');
                         $name = sanitize($_POST['name']);
-                        $role = sanitize($_POST['role']);
+                        $userID = sanitize($_POST['userID']);
+                        $password = sanitize($_POST['password']);
+                        if (filter_var($userID, FILTER_VALIDATE_INT) === false)
+                            echo showMessage('ID must be an integer');
+
+                        $hashPass = hash('sha256', $password);
                         
                         // Use prepared statement
-                        $stmt = $conn->prepare("INSERT INTO Admin (name, role) VALUES (?, ?)");
-                        $stmt->bind_param('ss', $name, $role);
+                        $stmt = $conn->prepare("INSERT INTO Admin (name, adminID, password) VALUES (?, ?, ?)");
+                        $stmt->bind_param('sis', $name, $userID, $hashPass);
                         
-                        if ($stmt->execute()) {
-                            $adminID = $conn->insert_id;
-                            echo showMessage("Admin added successfully. New Admin ID: $adminID");
-                            // Clear form by redirection
-                            echo "<script>
-                                setTimeout(function(){
-                                    window.location.href = 'operations.php?action=insert&entity=admin&success=true';
-                                }, 2000);
-                            </script>";
-                        } else {
+                        if ($stmt->execute())
+                            echo showMessage("Admin added successfully.");
+                        else
                             echo showMessage("Error adding admin: " . $stmt->error, true);
-                        }
                     }
                     
                     // Admin insert form
                     ?>
                     <form method="post">
                         <div>
+                            <label for="userID">ID:</label>
+                            <input type="text" name="userID" required>
+                        </div>
+                        <div>
                             <label for="name">Name:</label>
                             <input type="text" name="name" required>
                         </div>
                         <div>
-                            <label for="role">Role:</label>
-                            <input type="text" name="role" required>
+                            <label for="password">Password:</label>
+                            <input type="text" name="password" required>
                         </div>
                         <button type="submit">Add Admin</button>
                     </form>
