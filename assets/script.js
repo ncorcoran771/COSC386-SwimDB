@@ -24,3 +24,60 @@ function toggleElement(elementId, show) {
 function confirmDelete(message) {
     return confirm(message || 'Are you sure you want to delete this record?');
 }
+
+/**
+ * Generic function to populate form fields from a dropdown selection
+ * @param {string} selectorId - ID of the dropdown element
+ * @param {Object} fieldMappings - Object mapping JSON property names to form field IDs
+ * @param {function} afterPopulationCallback - Optional callback function to run after populating fields
+ */
+function setupAutoPopulation(selectorId, fieldMappings, afterPopulationCallback) {
+    const selector = document.getElementById(selectorId);
+    if (!selector) return;
+    
+    selector.addEventListener('change', function() {
+        // If a valid option is selected (not the default empty option)
+        if (this.value) {
+            try {
+                const data = JSON.parse(this.value);
+                
+                // Loop through field mappings and populate each field
+                for (const [dataProperty, fieldId] of Object.entries(fieldMappings)) {
+                    const field = document.getElementById(fieldId);
+                    if (field && data[dataProperty] !== undefined) {
+                        field.value = data[dataProperty];
+                        
+                        // Trigger change event on the field to activate any dependent logic
+                        const event = new Event('change');
+                        field.dispatchEvent(event);
+                    }
+                }
+                
+                // Run callback function if provided
+                if (typeof afterPopulationCallback === 'function') {
+                    afterPopulationCallback(data);
+                }
+            } catch (error) {
+                console.error('Error parsing data:', error);
+            }
+        } else {
+            // Clear fields if default option is selected
+            for (const fieldId of Object.values(fieldMappings)) {
+                const field = document.getElementById(fieldId);
+                if (field) field.value = '';
+            }
+            
+            // Run callback function with null data if provided
+            if (typeof afterPopulationCallback === 'function') {
+                afterPopulationCallback(null);
+            }
+        }
+    });
+}
+
+// Example usage for meet selection:
+// setupAutoPopulation('meetSelector', {
+//     'meetName': 'meetNameField',
+//     'location': 'meetLocationField',
+//     'date': 'meetDateField'
+// });

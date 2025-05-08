@@ -33,6 +33,51 @@ error_reporting(E_ALL);
                 unset($_SESSION['message']);
             }
 
+            // Handle add swim time
+            if ($action === 'add' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+                $swimmerID = sanitize($_POST['swimmerID']);
+                $eventName = sanitize($_POST['eventName']);
+                $meetName = sanitize($_POST['meetName']);
+                $meetDate = sanitize($_POST['meetDate']);
+                
+                // IMPROVED DATE VALIDATION
+                $meetDate = trim($meetDate);
+                if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $meetDate)) {
+                    $timestamp = strtotime($meetDate);
+                    if ($timestamp === false) {
+                        echo showMessage("Invalid date format. Please use YYYY-MM-DD format.", true);
+                    } else {
+                        $meetDate = date('Y-m-d', $timestamp);
+                    }
+                }
+                
+                $timeStr = sanitize($_POST['time']);
+                $timeInSeconds = timeToSeconds($timeStr);
+                
+                // Check if meet exists, if not create it
+                $stmt = $conn->prepare("SELECT * FROM Meet WHERE meetName = ? AND date = ?");
+                $stmt->bind_param('ss', $meetName, $meetDate);
+                $stmt->execute();
+                
+                if ($stmt->get_result()->num_rows === 0) {
+                    $location = sanitize($_POST['meetLocation'] ?? 'Unknown');
+                    
+                    $stmt = $conn->prepare("INSERT INTO Meet (meetName, location, date) VALUES (?, ?, ?)");
+                    $stmt->bind_param('sss', $meetName, $location, $meetDate);
+                    $stmt->execute();
+                }
+                
+                // Insert swim record
+                $stmt = $conn->prepare("INSERT INTO Swim (eventName, meetName, meetDate, swimmerID, time) VALUES (?, ?, ?, ?, ?)");
+                $stmt->bind_param('sssid', $eventName, $meetName, $meetDate, $swimmerID, $timeInSeconds);
+                
+                if ($stmt->execute()) {
+                    echo showMessage("Swim record added successfully");
+                } else {
+                    echo showMessage("Error adding swim record: " . $stmt->error, true);
+                }
+            }
+
             // Handle delete action
             if ($action === 'delete') {
                 // Get parameters either from URL or POST
@@ -40,13 +85,6 @@ error_reporting(E_ALL);
                 $eventName = isset($_REQUEST['eventName']) ? sanitize($_REQUEST['eventName']) : '';
                 $meetName = isset($_REQUEST['meetName']) ? sanitize($_REQUEST['meetName']) : '';
                 $meetDate = isset($_REQUEST['meetDate']) ? sanitize($_REQUEST['meetDate']) : '';
-                
-                // Debug output
-                echo "<div class='message'>Debug: Delete action triggered for swim record:<br>
-                      SwimmerID: $swimmerID<br>
-                      Event: $eventName<br>
-                      Meet: $meetName<br>
-                      Date: $meetDate</div>";
                 
                 if (empty($swimmerID) || empty($eventName) || empty($meetName) || empty($meetDate)) {
                     echo showMessage("Error: Missing swim record information for deletion", true);
@@ -105,8 +143,6 @@ error_reporting(E_ALL);
                     
                     if (!$stmt->execute()) {
                         echo showMessage("Error creating meet: " . $stmt->error, true);
-                    } else {
-                        echo "<div class='message'>Created new meet: $meetName at $location on $meetDate</div>";
                     }
                 }
                 
@@ -121,8 +157,6 @@ error_reporting(E_ALL);
                     if (!$stmt->execute()) {
                         throw new Exception("Failed to delete old swim record: " . $stmt->error);
                     }
-                    
-                    echo "<div class='message'>Debug: Deleted old swim record, affected rows: {$stmt->affected_rows}</div>";
                     
                     // Insert new record
                     $stmt = $conn->prepare("INSERT INTO Swim (swimmerID, eventName, meetName, meetDate, time) VALUES (?, ?, ?, ?, ?)");
@@ -249,19 +283,40 @@ error_reporting(E_ALL);
                                 <span class="help">Format: minutes:seconds:milliseconds</span>
                             </div>
                             
+                            <!-- Meet Selection Dropdown -->
+                            <div>
+                                <label for="meetSelector">Select Existing Meet (Optional):</label>
+                                <select id="meetSelector" onchange="populateMeetData()">
+                                    <option value="">-- Create New Meet --</option>
+                                    <?php
+                                    // Get all meets, ordered by most recent first
+                                    $meetsResult = $conn->query("SELECT meetName, location, date FROM Meet ORDER BY date DESC, meetName");
+                                    while ($meetRow = $meetsResult->fetch_assoc()) {
+                                        $selected = ($meetRow['meetName'] === $meetName && $meetRow['date'] === $meetDate) ? 'selected' : '';
+                                        $meetJson = htmlspecialchars(json_encode($meetRow));
+                                        echo "<option value='$meetJson' $selected>" . 
+                                            htmlspecialchars($meetRow['meetName']) . " - " . 
+                                            htmlspecialchars($meetRow['date']) . " (" . 
+                                            htmlspecialchars($meetRow['location']) . ")</option>";
+                                    }
+                                    ?>
+                                </select>
+                                <span class="help">Select an existing meet or create a new one</span>
+                            </div>
+                            
                             <div>
                                 <label for="meetName">Meet Name:</label>
-                                <input type="text" name="meetName" value="<?= htmlspecialchars($meetName) ?>" required>
+                                <input type="text" id="meetNameField" name="meetName" value="<?= htmlspecialchars($meetName) ?>" required>
                             </div>
                             
                             <div>
                                 <label for="meetLocation">Meet Location:</label>
-                                <input type="text" name="meetLocation" value="<?= htmlspecialchars($row['meetLocation']) ?>" required>
+                                <input type="text" id="meetLocationField" name="meetLocation" value="<?= htmlspecialchars($row['meetLocation']) ?>" required>
                             </div>
                             
                             <div>
                                 <label for="meetDate">Meet Date:</label>
-                                <input type="date" name="meetDate" value="<?= htmlspecialchars($meetDate) ?>" required>
+                                <input type="date" id="meetDateField" name="meetDate" value="<?= htmlspecialchars($meetDate) ?>" required>
                             </div>
                             
                             <div style="margin-top: 15px;">
@@ -270,19 +325,180 @@ error_reporting(E_ALL);
                             </div>
                         </form>
                     </div>
+                    
+                    <script>
+                    function populateMeetData() {
+                        const meetSelector = document.getElementById('meetSelector');
+                        const meetNameField = document.getElementById('meetNameField');
+                        const meetLocationField = document.getElementById('meetLocationField');
+                        const meetDateField = document.getElementById('meetDateField');
+                        
+                        if (meetSelector.value) {
+                            const meetData = JSON.parse(meetSelector.value);
+                            
+                            if (meetNameField) meetNameField.value = meetData.meetName;
+                            if (meetLocationField) meetLocationField.value = meetData.location;
+                            if (meetDateField) meetDateField.value = meetData.date;
+                        } else {
+                            if (meetNameField) meetNameField.value = '';
+                            if (meetLocationField) meetLocationField.value = '';
+                            if (meetDateField) meetDateField.value = '';
+                        }
+                    }
+                    </script>
                     <?php
                 } else {
                     echo showMessage("Swim record not found", true);
                 }
             }
 
-            // Display the swim record management UI if not in edit mode
-            if ($action !== 'edit_form') {
+            // Display Add Swim Form if action is 'add_form'
+            if ($action === 'add_form') {
+                ?>
+                <div class="edit-form" style="margin: 20px 0; background: #f5f5f5; padding: 15px; border-radius: 5px;">
+                    <h3>Add New Swim Record</h3>
+                    
+                    <form method="post" action="?action=add">
+                        <div>
+                            <label for="swimmerID">Swimmer:</label>
+                            <select name="swimmerID" required>
+                                <option value="">Select Swimmer</option>
+                                <?php
+                                // Get all swimmers
+                                $swimmersResult = $conn->query("SELECT swimmerID, name FROM Swimmer ORDER BY name");
+                                while ($swimmer = $swimmersResult->fetch_assoc()) {
+                                    echo "<option value='" . $swimmer['swimmerID'] . "'>" . 
+                                        htmlspecialchars($swimmer['name']) . " (ID: " . $swimmer['swimmerID'] . ")</option>";
+                                }
+                                ?>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label for="eventName">Event:</label>
+                            <select name="eventName" required>
+                                <option value="">Select Event</option>
+                                <optgroup label="Freestyle">
+                                    <?php
+                                    $freestyleEvents = ["50y Freestyle", "100y Freestyle", "200y Freestyle", "500y Freestyle", "1000y Freestyle", "1650y Freestyle"];
+                                    foreach ($freestyleEvents as $event) {
+                                        echo "<option value=\"$event\">$event</option>";
+                                    }
+                                    ?>
+                                </optgroup>
+                                <optgroup label="Backstroke">
+                                    <?php
+                                    $backstrokeEvents = ["50y Backstroke", "100y Backstroke", "200y Backstroke"];
+                                    foreach ($backstrokeEvents as $event) {
+                                        echo "<option value=\"$event\">$event</option>";
+                                    }
+                                    ?>
+                                </optgroup>
+                                <optgroup label="Butterfly">
+                                    <?php
+                                    $butterflyEvents = ["50y Butterfly", "100y Butterfly", "200y Butterfly"];
+                                    foreach ($butterflyEvents as $event) {
+                                        echo "<option value=\"$event\">$event</option>";
+                                    }
+                                    ?>
+                                </optgroup>
+                                <optgroup label="Breaststroke">
+                                    <?php
+                                    $breaststrokeEvents = ["50y Breaststroke", "100y Breaststroke", "200y Breaststroke"];
+                                    foreach ($breaststrokeEvents as $event) {
+                                        echo "<option value=\"$event\">$event</option>";
+                                    }
+                                    ?>
+                                </optgroup>
+                                <optgroup label="IM">
+                                    <?php
+                                    $imEvents = ["100y IM", "200y IM", "400y IM"];
+                                    foreach ($imEvents as $event) {
+                                        echo "<option value=\"$event\">$event</option>";
+                                    }
+                                    ?>
+                                </optgroup>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label for="time">Time (mm:ss:ms):</label>
+                            <input type="text" name="time" placeholder="e.g., 01:23:45" required>
+                            <span class="help">Format: minutes:seconds:milliseconds</span>
+                        </div>
+                        
+                        <!-- Meet Selection Dropdown -->
+                        <div>
+                            <label for="meetSelector">Select Existing Meet (Optional):</label>
+                            <select id="meetSelector" onchange="populateMeetData()">
+                                <option value="">-- Create New Meet --</option>
+                                <?php
+                                // Get all meets, ordered by most recent first
+                                $meetsResult = $conn->query("SELECT meetName, location, date FROM Meet ORDER BY date DESC, meetName");
+                                while ($meetRow = $meetsResult->fetch_assoc()) {
+                                    $meetJson = htmlspecialchars(json_encode($meetRow));
+                                    echo "<option value='$meetJson'>" . 
+                                        htmlspecialchars($meetRow['meetName']) . " - " . 
+                                        htmlspecialchars($meetRow['date']) . " (" . 
+                                        htmlspecialchars($meetRow['location']) . ")</option>";
+                                }
+                                ?>
+                            </select>
+                            <span class="help">Select an existing meet or create a new one</span>
+                        </div>
+                        
+                        <div>
+                            <label for="meetName">Meet Name:</label>
+                            <input type="text" id="meetNameField" name="meetName" required>
+                        </div>
+                        
+                        <div>
+                            <label for="meetLocation">Meet Location:</label>
+                            <input type="text" id="meetLocationField" name="meetLocation" required>
+                        </div>
+                        
+                        <div>
+                            <label for="meetDate">Meet Date:</label>
+                            <input type="date" id="meetDateField" name="meetDate" required>
+                        </div>
+                        
+                        <div style="margin-top: 15px;">
+                            <button type="submit" class="button">Add Swim Record</button>
+                            <a href="swim_management.php" class="button">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+                
+                <script>
+                function populateMeetData() {
+                    const meetSelector = document.getElementById('meetSelector');
+                    const meetNameField = document.getElementById('meetNameField');
+                    const meetLocationField = document.getElementById('meetLocationField');
+                    const meetDateField = document.getElementById('meetDateField');
+                    
+                    if (meetSelector.value) {
+                        const meetData = JSON.parse(meetSelector.value);
+                        
+                        if (meetNameField) meetNameField.value = meetData.meetName;
+                        if (meetLocationField) meetLocationField.value = meetData.location;
+                        if (meetDateField) meetDateField.value = meetData.date;
+                    } else {
+                        if (meetNameField) meetNameField.value = '';
+                        if (meetLocationField) meetLocationField.value = '';
+                        if (meetDateField) meetDateField.value = '';
+                    }
+                }
+                </script>
+                <?php
+            }
+
+            // Display the swim record management UI if not in edit or add mode
+            if ($action === 'list') {
             ?>
 
             <!-- Add Swim Time Button -->
             <div style="margin: 20px 0;">
-                <a href="operations.php?action=insert&entity=swim" class="button">Add New Swim Time</a>
+                <a href="?action=add_form" class="button">Add New Swim Time</a>
             </div>
 
             <!-- Search Form -->
@@ -555,12 +771,13 @@ error_reporting(E_ALL);
             }
             </style>
 
-            <p><a href="home.php">Back to Home</a></p>
-
             <?php 
             }
-            include 'includes/footer.php'; 
             ?>
+
+            <p><a href="home.php">Back to Home</a></p>
+
+            <?php include 'includes/footer.php'; ?>
         </div>
     </div>
 </body>

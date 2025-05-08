@@ -295,26 +295,6 @@ include 'includes/header.php';
                     
                 // NEW CASE: Add swim time for swimmers
                 case 'swim:insert':
-
-                    echo "<div class='message'>";
-                    echo "<h3>Debugging Table Structure</h3>";
-                    $tableStructureResult = $conn->query("DESCRIBE Swim");
-                    if ($tableStructureResult) {
-                        echo "<table border='1'>";
-                        echo "<tr><th>Field</th><th>Type</th><th>Null</th><th>Key</th><th>Default</th><th>Extra</th></tr>";
-                        while ($row = $tableStructureResult->fetch_assoc()) {
-                            echo "<tr>";
-                            foreach ($row as $key => $value) {
-                                echo "<td>" . htmlspecialchars($value ?? 'NULL') . "</td>";
-                            }
-                            echo "</tr>";
-                        }
-                        echo "</table>";
-                    } else {
-                        echo "Error getting table structure: " . $conn->error;
-                    }
-                    echo "</div>";
-                    
                     // Get parameters from URL
                     $swimmerID = isset($_GET['swimmer']) ? intval($_GET['swimmer']) : 0;
                     $meetName = isset($_GET['meet']) ? sanitize($_GET['meet']) : '';
@@ -367,17 +347,6 @@ include 'includes/header.php';
                         // Convert time to seconds for DB storage
                         $timeInSeconds = timeToSeconds($timeStr);
                         
-                        // Debug information to help troubleshoot
-                        /*
-                        echo "<div class='message'>";
-                        echo "Debug information:<br>";
-                        echo "Meet Name: " . htmlspecialchars($meetName) . "<br>";
-                        echo "Location: " . sanitize($_POST['meetLocation'] ?? 'Unknown') . "<br>";
-                        echo "Date (as received): " . htmlspecialchars($_POST['meetDate']) . "<br>";
-                        echo "Date (after processing): " . htmlspecialchars($meetDate) . "<br>";
-                        echo "</div>";
-                        */
-                        
                         // Check if meet exists, if not create it
                         $stmt = $conn->prepare("SELECT * FROM Meet WHERE meetName = ? AND date = ?");
                         $stmt->bind_param('ss', $meetName, $meetDate);
@@ -405,7 +374,7 @@ include 'includes/header.php';
                             echo "<p>Would you like to add another swim time?</p>";
                             echo "<a href='operations.php?action=insert&entity=swim&swimmer=$swimmerID' class='button'>Yes, for same swimmer</a> ";
                             echo "<a href='operations.php?action=insert&entity=swim' class='button'>Yes, for different swimmer</a> ";
-                            echo "<a href='operations.php?action=view&entity=swims' class='button'>No, view all swims</a>";
+                            echo "<a href='swim_management.php' class='button'>No, view all swims</a>"; // FIX: Changed link to swim_management.php
                             echo "</div>";
                         } else {
                             echo showMessage("Error adding swim record: " . $stmt->error, true);
@@ -475,19 +444,38 @@ include 'includes/header.php';
                                 <span class="help">Format: minutes:seconds:milliseconds</span>
                             </div>
                             
+                            <!-- NEW: Meet selection and data auto-population -->
+                            <div>
+                                <label for="meetSelector">Select Existing Meet (Optional):</label>
+                                <select id="meetSelector" onchange="populateMeetData()">
+                                    <option value="">-- Create New Meet --</option>
+                                    <?php
+                                    // Get all meets, ordered by most recent first
+                                    $meetsResult = $conn->query("SELECT meetName, location, date FROM Meet ORDER BY date DESC, meetName");
+                                    while ($meetRow = $meetsResult->fetch_assoc()) {
+                                        echo "<option value='".htmlspecialchars(json_encode($meetRow))."'>" . 
+                                            htmlspecialchars($meetRow['meetName']) . " - " . 
+                                            htmlspecialchars($meetRow['date']) . " (" . 
+                                            htmlspecialchars($meetRow['location']) . ")</option>";
+                                    }
+                                    ?>
+                                </select>
+                                <span class="help">Select an existing meet or create a new one</span>
+                            </div>
+                            
                             <div>
                                 <label for="meetName">Meet Name:</label>
                                 <?php if (!empty($meetName)): ?>
                                     <input type="hidden" name="meetName" value="<?= htmlspecialchars($meetName) ?>">
                                     <p><strong><?= htmlspecialchars($meetName) ?></strong></p>
                                 <?php else: ?>
-                                    <input type="text" name="meetName" required>
+                                    <input type="text" id="meetNameField" name="meetName" required>
                                 <?php endif; ?>
                             </div>
                             
                             <div>
                                 <label for="meetLocation">Meet Location:</label>
-                                <input type="text" name="meetLocation" required>
+                                <input type="text" id="meetLocationField" name="meetLocation" required>
                             </div>
                             
                             <div>
@@ -496,12 +484,37 @@ include 'includes/header.php';
                                     <input type="hidden" name="meetDate" value="<?= htmlspecialchars($meetDate) ?>">
                                     <p><strong><?= htmlspecialchars($meetDate) ?></strong></p>
                                 <?php else: ?>
-                                    <input type="date" name="meetDate" required>
+                                    <input type="date" id="meetDateField" name="meetDate" required>
                                 <?php endif; ?>
                             </div>
                             
                             <button type="submit">Add Swim Time</button>
                         </form>
+                        
+                        <!-- JavaScript to auto-populate meet data -->
+                        <script>
+                        function populateMeetData() {
+                            const meetSelector = document.getElementById('meetSelector');
+                            const meetNameField = document.getElementById('meetNameField');
+                            const meetLocationField = document.getElementById('meetLocationField');
+                            const meetDateField = document.getElementById('meetDateField');
+                            
+                            // If a meet is selected (not the default "Create New Meet" option)
+                            if (meetSelector.value) {
+                                const meetData = JSON.parse(meetSelector.value);
+                                
+                                // Auto-populate fields if they exist
+                                if (meetNameField) meetNameField.value = meetData.meetName;
+                                if (meetLocationField) meetLocationField.value = meetData.location;
+                                if (meetDateField) meetDateField.value = meetData.date;
+                            } else {
+                                // Clear fields if default option is selected
+                                if (meetNameField) meetNameField.value = '';
+                                if (meetLocationField) meetLocationField.value = '';
+                                if (meetDateField) meetDateField.value = '';
+                            }
+                        }
+                        </script>
                         <?php
                     }
                     break;
