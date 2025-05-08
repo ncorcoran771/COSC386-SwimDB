@@ -103,7 +103,7 @@ include 'includes/header.php';
                         if ($result->num_rows > 0) {
                             echo "<h2>Results</h2>";
                             echo "<table>";
-                            echo "<tr><th>ID</th><th>Name</th><th>hashedPassword</th></tr>";
+                            echo "<tr><th>ID</th><th>Name</th><th>Hashed Password</th></tr>";
                             
                             while ($row = $result->fetch_assoc()) {
                                 echo "<tr>";
