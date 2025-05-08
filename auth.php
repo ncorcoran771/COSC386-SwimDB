@@ -52,7 +52,7 @@ switch ($action) {
         // Process registration (from register.php)
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $userID = sanitize($_POST['userID'] ?? '');
-            $password = $_POST['plainPassword'] ?? '';
+            $password = $_POST['password'] ?? '';
             $role = strtolower($_POST['role'] ?? '');
             
             if (empty($userID) || empty($password) || empty($role)) {
