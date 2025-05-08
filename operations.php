@@ -39,11 +39,11 @@ include 'includes/header.php';
                 case 'admin:insert':
                     // Insert admin logic (from insert_admin.php)
                     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-                        if (empty($name) || empty($userID) || empty($password))
-                            echo showMessage('All fields are required');
                         $name = sanitize($_POST['name']);
                         $userID = sanitize($_POST['userID']);
                         $password = sanitize($_POST['password']);
+                        if (empty($name) || empty($userID) || empty($password))
+                            echo showMessage('All fields are required');
                         if (filter_var($userID, FILTER_VALIDATE_INT) === false)
                             echo showMessage('ID must be an integer');
 
@@ -72,7 +72,7 @@ include 'includes/header.php';
                         </div>
                         <div>
                             <label for="password">Password:</label>
-                            <input type="text" name="password" required>
+                            <input type="password" name="password" required>
                         </div>
                         <button type="submit">Add Admin</button>
                     </form>
