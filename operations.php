@@ -103,13 +103,13 @@ include 'includes/header.php';
                         if ($result->num_rows > 0) {
                             echo "<h2>Results</h2>";
                             echo "<table>";
-                            echo "<tr><th>ID</th><th>Name</th><th>Role</th></tr>";
+                            echo "<tr><th>ID</th><th>Name</th><th>hashedPassword</th></tr>";
                             
                             while ($row = $result->fetch_assoc()) {
                                 echo "<tr>";
                                 echo "<td>" . htmlspecialchars($row['adminID']) . "</td>";
                                 echo "<td>" . htmlspecialchars($row['name']) . "</td>";
-                                echo "<td>" . htmlspecialchars($row['role']) . "</td>";
+                                echo "<td>" . htmlspecialchars($row['password']) . "</td>";
                                 echo "</tr>";
                             }
                             
