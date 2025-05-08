@@ -52,18 +52,41 @@ include 'includes/sidebar.php';
             
             <?php if ($role === 'admin'): ?>
                 <h2>Administrator Tools</h2>
-                <div class="nav">
-                    <!-- New unified management interfaces -->
-                    <a href="swimmer_management.php">Swimmer Management</a>
-                    <a href="team_management.php">Team Management</a>
+                <div class="admin-tools">
+                    <h3>Data Management</h3>
+                    <div class="admin-grid">
+                        <a href="swimmer_management.php" class="admin-link-box">
+                            <h4>Swimmer Management</h4>
+                            <p>Add, edit, search, and delete swimmers</p>
+                        </a>
+                        <a href="team_management.php" class="admin-link-box">
+                            <h4>Team Management</h4>
+                            <p>Add, edit, search, and delete teams</p>
+                        </a>
+                        <a href="conference_management.php" class="admin-link-box">
+                            <h4>Conference Management</h4>
+                            <p>Add, edit, search, and delete conferences</p>
+                        </a>
+                        <a href="meet_management.php" class="admin-link-box">
+                            <h4>Meet Management</h4>
+                            <p>Add, edit, search, and delete meets</p>
+                        </a>
+                        <a href="swim_management.php" class="admin-link-box">
+                            <h4>Swim Record Management</h4>
+                            <p>Add, edit, search, and delete swim records</p>
+                        </a>
+                        <a href="operations.php?action=search&entity=admin" class="admin-link-box">
+                            <h4>Admin Management</h4>
+                            <p>Add, search, and delete administrators</p>
+                        </a>
+                    </div>
                     
-                    <!-- Keep existing links for backward compatibility -->
-                    <a href="operations.php?action=insert&entity=swimmer">Add Swimmer</a>
-                    <a href="operations.php?action=delete&entity=swimmer">Delete Swimmer</a>
-                    <a href="operations.php?action=insert&entity=swim">Add Swim Times</a>
-                    <a href="operations.php?action=search&entity=admin">Search Admin</a>
-                    <a href="operations.php?action=insert&entity=admin">Add Admin</a>
-                    <a href="operations.php?action=delete&entity=admin">Delete Admin</a>
+                    <h3>Quick Actions</h3>
+                    <div class="quick-actions">
+                        <a href="operations.php?action=insert&entity=swimmer" class="button">Add Swimmer</a>
+                        <a href="operations.php?action=insert&entity=swim" class="button">Add Swim Time</a>
+                        <a href="operations.php?action=insert&entity=admin" class="button">Add Admin</a>
+                    </div>
                 </div>
                 
             <?php endif; ?>
@@ -126,6 +149,70 @@ include 'includes/sidebar.php';
         color: #000000; /* Pure black text for maximum contrast */
         line-height: 1.5; /* Improved line height */
         font-weight: 500; /* Medium weight for better visibility */
+    }
+    
+    /* Admin Tools Section */
+    .admin-tools {
+        margin: 20px 0 30px;
+    }
+    
+    .admin-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 20px;
+        margin: 15px 0 30px;
+    }
+    
+    .admin-link-box {
+        background-color: white;
+        border-radius: 8px;
+        padding: 15px;
+        text-decoration: none;
+        color: inherit;
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: 2px solid #7b1fa2; /* Purple border for admin tools */
+        box-shadow: 0 3px 6px rgba(0,0,0,0.16);
+    }
+    
+    .admin-link-box:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+        background-color: #f3e5f5; /* Light purple background on hover */
+        border-color: #4a148c; /* Darker purple border on hover */
+    }
+    
+    .admin-link-box h4 {
+        color: #4a148c; /* Dark purple heading */
+        margin-top: 0;
+        margin-bottom: 8px;
+        font-weight: 600;
+        font-size: 1.1em;
+    }
+    
+    .admin-link-box p {
+        margin: 0;
+        font-size: 0.9em;
+        color: #444;
+    }
+    
+    .quick-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 10px;
+    }
+    
+    .quick-actions .button {
+        background-color: #7b1fa2; /* Purple background for admin action buttons */
+        color: white;
+        padding: 8px 15px;
+        border-radius: 5px;
+        text-decoration: none;
+        transition: background-color 0.2s;
+    }
+    
+    .quick-actions .button:hover {
+        background-color: #4a148c; /* Darker purple on hover */
     }
     </style>
 </body>
