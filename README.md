@@ -1,5 +1,6 @@
 # COSC386-SwimDB
 Swimming Recruitment database for COSC 386
+EVEN MORE up to date project: https://lamp.salisbury.edu/~knorton3/COSC386-SwimDB/index.php
 
 More up to date project: https://lamp.salisbury.edu/~ncorcoran1/swimDB/home.php
 
